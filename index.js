@@ -1,13 +1,3 @@
-// Endpoint para obtener las membresías disponibles
-app.get('/membresias_disponibles', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT NombrePlan as nombre, DuracionDias as duracion, Precio as precio FROM PLANES_MEMBRESIA');
-        res.json({ membresias: result.rows });
-    } catch (error) {
-        console.error(error.message);
-        res.status(500).json({ mensaje: 'Error al obtener membresías' });
-    }
-});
 const express = require('express');
 const cors = require('cors');
 const https = require('https');
@@ -66,19 +56,7 @@ app.post('/login_socio', async (req, res) => {
         res.status(500).send('Error en el login');
     }
 });
-// Ruta para  registrar socios en el gimnasio
-app.post('/registro_socio', async (req, res) => {
-    try { 
-        const { ID_Socio, FechaRegistro, Estado } = req.body;
-        const newSocio = await pool.query("INSERT INTO SOCIOS (ID_Socio, FechaRegistro, Estado) VALUES ($1, $2, $3)  RETURNING *",
-            [ID_Socio, FechaRegistro, Estado])
-        
-        res.json(newSocio.rows[0]);
-    } catch (error) {
-        console.error(error.message);
-        res.status(500).send('Server Error');
-    }
-});
+
 
 // Endpoint para modificar el estado de un socio
 app.put('/modificar_estado_socio/:id', async (req, res) => {
