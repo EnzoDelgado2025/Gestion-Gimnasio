@@ -1,0 +1,11 @@
+ingreso de registros en la tabla socios
+endpoint:http://localhost:3000/registro_socio
+{
+   "ID_Socio":"2101234567",
+   "FechaRegistro":"2025-10-01",
+   "Estado": "Inactivo"
+
+}
+
+eliminación de socios
+endpoint: http://localhost:3000/eliminar_socio/cedula

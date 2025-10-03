@@ -1,0 +1,23 @@
+{
+  "name": "gestion_gimnasio",
+  "version": "1.0.0",
+  "description": "proyecto para la gestión de un gimnasio",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nodejs",
+    "swagger",
+    "express",
+    "postgresql"
+  ],
+  "author": "Enzo Delgado",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "pg": "^8.16.3"
+  }
+}

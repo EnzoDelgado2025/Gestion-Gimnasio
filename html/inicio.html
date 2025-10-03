@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>GymMax - Tu gimnasio online</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(120deg, #e0eafc 0%, #cfdef3 100%);
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(90deg, #007bff 60%, #00c6ff 100%);
+            color: #fff;
+            padding: 3em 1em 2em 1em;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 2.5em;
+            margin-bottom: 0.3em;
+        }
+        .hero p {
+            font-size: 1.2em;
+            margin-bottom: 1.5em;
+        }
+        .btn-login {
+            background: #fff;
+            color: #007bff;
+            border: none;
+            border-radius: 5px;
+            padding: 0.8em 2em;
+            font-size: 1.1em;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: background 0.2s, color 0.2s;
+        }
+        .btn-login:hover {
+            background: #007bff;
+            color: #fff;
+        }
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2em;
+            margin: 2em auto 3em auto;
+            max-width: 900px;
+        }
+        .feature {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 1.5em 1.2em;
+            flex: 1 1 220px;
+            min-width: 220px;
+            max-width: 270px;
+            text-align: center;
+        }
+        .feature img {
+            width: 48px;
+            margin-bottom: 0.7em;
+        }
+        .membresias-section {
+            background: #f8f9fa;
+            padding: 2em 0 3em 0;
+        }
+        .membresias-title {
+            text-align: center;
+            font-size: 2em;
+            color: #007bff;
+            margin-bottom: 1.2em;
+        }
+        .membresias {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2em;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .membresia-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 1.5em 1.2em;
+            min-width: 220px;
+            max-width: 260px;
+            text-align: center;
+            border: 2px solid #007bff22;
+        }
+        .membresia-card h3 {
+            color: #007bff;
+            margin-bottom: 0.5em;
+        }
+        .membresia-card .precio {
+            font-size: 1.5em;
+            color: #00c6ff;
+            margin: 0.5em 0 0.7em 0;
+        }
+        .membresia-card .duracion {
+            color: #555;
+            margin-bottom: 0.7em;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Logo Gimnasio" style="width:90px; margin-bottom:1em;">
+        <h1>¡Entrena donde y cuando quieras!</h1>
+        <p>Accede a clases, rutinas y planes personalizados en GymMax. Vive la experiencia fitness más completa, moderna y flexible.</p>
+        <button class="btn-login" onclick="window.location.href='login.html'">Iniciar sesión</button>
+    </div>
+    <div class="features">
+        <div class="feature">
+            <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Equipos">
+            <h4>Equipos de última generación</h4>
+            <p>Entrena con máquinas y accesorios de alta calidad para todos los niveles.</p>
+        </div>
+        <div class="feature">
+            <img src="https://cdn-icons-png.flaticon.com/512/1046/1046857.png" alt="Clases">
+            <h4>Clases grupales</h4>
+            <p>Spinning, yoga, crossfit, pilates y más, con instructores certificados.</p>
+        </div>
+        <div class="feature">
+            <img src="https://cdn-icons-png.flaticon.com/512/1046/1046875.png" alt="Entrenadores">
+            <h4>Entrenadores personales</h4>
+            <p>Recibe asesoría profesional y rutinas personalizadas para tus objetivos.</p>
+        </div>
+        <div class="feature">
+            <img src="https://cdn-icons-png.flaticon.com/512/1046/1046866.png" alt="Ambiente">
+            <h4>Ambiente seguro y motivador</h4>
+            <p>Disfruta de un espacio limpio, seguro y con excelente ambiente.</p>
+        </div>
+    </div>
+    <div class="membresias-section">
+        <div class="membresias-title">Nuestras Membresías</div>
+        <div class="membresias">
+            <div class="membresia-card">
+                <h3>Básico Mensual</h3>
+                <div class="precio">$40.00</div>
+                <div class="duracion">30 días</div>
+                <p>Acceso ilimitado al gimnasio y clases grupales estándar.</p>
+            </div>
+            <div class="membresia-card">
+                <h3>Anual VIP</h3>
+                <div class="precio">$360.00</div>
+                <div class="duracion">365 días</div>
+                <p>Acceso total, clases premium, asesoría personalizada y beneficios exclusivos.</p>
+            </div>
+            <div class="membresia-card">
+                <h3>Trimestral Estándar</h3>
+                <div class="precio">$100.00</div>
+                <div class="duracion">90 días</div>
+                <p>Ideal para quienes buscan resultados en corto plazo y flexibilidad.</p>
+            </div>
+            <div class="membresia-card">
+                <h3>Semanal Prueba</h3>
+                <div class="precio">$15.00</div>
+                <div class="duracion">7 días</div>
+                <p>Prueba todos los servicios y decide tu mejor plan.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
