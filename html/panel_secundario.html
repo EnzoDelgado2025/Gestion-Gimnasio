@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Secundario</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .bienvenida {
+            background: #2d3e50;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        nav {
+            background: #34495e;
+            color: #fff;
+            padding: 0;
+        }
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        nav ul li {
+            position: relative;
+        }
+        nav > ul > li {
+            padding: 15px 25px;
+            cursor: pointer;
+        }
+        nav ul li:hover {
+            background: #22313f;
+        }
+        nav ul ul {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 100%;
+            background: #34495e;
+            min-width: 220px;
+            z-index: 1000;
+        }
+        nav ul li:hover > ul {
+            display: block;
+        }
+        nav ul ul li {
+            padding: 12px 20px;
+            white-space: nowrap;
+        }
+        .salir {
+            margin-left: auto;
+            background: #e74c3c;
+            color: #fff;
+            padding: 15px 25px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .salir:hover {
+            background: #c0392b;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('usuario').textContent = 'Usuario';
+        });
+        function salir() {
+            window.location.href = 'login.html';
+        }
+    </script>
+</head>
+<body>
+    <div class="bienvenida">
+        <h2>Bienvenido, <span id="usuario"></span>!</h2>
+    </div>
+    <nav>
+        <ul>
+            <li><a href="inicio.html" style="color:inherit; text-decoration:none; display:block;">Inicio</a></li>
+            <li>Maquinas
+                <ul>
+                    <li>Consulta de máquinas</li>
+                    <li>Reserva de máquinas</li>
+                </ul>
+            </li>
+            <li>Membresías
+                <ul>
+                    <li>Contratación de planes</li>
+                    <li>Consulta de membresías</li>
+                </ul>
+            </li>
+            <li>Facturación
+                <ul>
+                    <li>Pagos</li>
+                </ul>
+            </li>
+            <li class="salir" onclick="salir()">Salir</li>
+        </ul>
+    </nav>
+</body>
+</html>
