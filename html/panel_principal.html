@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Principal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .bienvenida {
+            background: #2d3e50;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        nav {
+            background: #34495e;
+            color: #fff;
+            padding: 0;
+        }
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        nav ul li {
+            position: relative;
+        }
+        nav > ul > li {
+            padding: 15px 25px;
+            cursor: pointer;
+        }
+        nav ul li:hover {
+            background: #22313f;
+        }
+        nav ul ul {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 100%;
+            background: #34495e;
+            min-width: 220px;
+            z-index: 1000;
+        }
+        nav ul li:hover > ul {
+            display: block;
+        }
+        nav ul ul li {
+            padding: 12px 20px;
+            white-space: nowrap;
+        }
+        .salir {
+            margin-left: auto;
+            background: #e74c3c;
+            color: #fff;
+            padding: 15px 25px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .salir:hover {
+            background: #c0392b;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('usuario').textContent = 'Usuario';
+        });
+        function salir() {
+            // Aquí puedes limpiar el localStorage o sesión si es necesario
+            window.location.href = 'login.html';
+        }
+    </script>
+</head>
+<body>
+    <div class="bienvenida">
+        <h2>Bienvenido, <span id="usuario"></span>!</h2>
+    </div>
+    <nav>
+        <ul>
+            <li><a href="inicio.html" style="color:inherit; text-decoration:none; display:block;">Inicio</a></li>
+            <li>Personas
+                <ul>
+                    <li><a href="registro_socios.html" style="color:inherit; text-decoration:none; display:block;">Registro de Personas</a></li>
+                    <li>Actualización de datos</li>
+                    <li>Eliminación de socios</li>
+                    <li>Consulta de socios</li>
+                </ul>
+            </li>
+            <li>Empleados
+                <ul>
+                    <li>Registro de Empleados</li>
+                    <li>Actualización de datos</li>
+                    <li>Eliminación de socios</li>
+                    <li>Consulta de socios</li>
+                </ul>
+            </li>
+            <li>Maquinas
+                <ul>
+                    <li>Registro de máquinas</li>
+                    <li>Actualización de máquinas</li>
+                    <li>Eliminación de máquinas</li>
+                    <li>Consulta de maquinas</li>
+                </ul>
+            </li>
+            <li>Membresías
+                <ul>
+                    <li>Creación de membresías</li>
+                    <li>Actualización de planes</li>
+                    <li>Eliminación de plan</li>
+                    <li>Consulta de membresias</li>
+                </ul>
+            </li>
+            <li>Facturación
+                <ul>
+                    <li>Pagos</li>
+                </ul>
+            </li>
+            <li class="salir" onclick="salir()">Salir</li>
+        </ul>
+    </nav>
+</body>
+</html>

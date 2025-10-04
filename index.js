@@ -6,8 +6,19 @@ const app = express();
 const puerto= 3000;
 const pool = require('./db');
 
+
+
 app.use(express.json());
-app.use(cors());
+
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
+
+
+// Servir archivos estáticos desde /html
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'html')));
 
 // Endpoint para registrar una persona (con password encriptado usando crypt de PostgreSQL)
 app.post('/registro_persona', async (req, res) => {
@@ -43,19 +54,31 @@ app.post('/login_socio', async (req, res) => {
     try {
         const { ID_Persona, password } = req.body;
         const salt = 'my_salt';
+        // Verificar credenciales en PERSONAS
         const query = `SELECT ID_Persona, Nombre, Apellido, Email FROM PERSONAS WHERE ID_Persona = $1 AND password = crypt($2, $3)`;
         const values = [ID_Persona, password, salt];
         const result = await pool.query(query, values);
         if (result.rowCount === 0) {
-             return res.status(401).json({ mensaje: 'Credenciales inválidas' });
-            
+            return res.status(401).json({ mensaje: 'Credenciales inválidas' });
         }
-        res.json({ mensaje: 'Login exitoso', persona: result.rows[0] });
+        // Verificar si es socio
+        const socioResult = await pool.query('SELECT 1 FROM SOCIOS WHERE ID_Socio = $1', [ID_Persona]);
+        if (socioResult.rowCount > 0) {
+            return res.json({ mensaje: 'Login exitoso', tipo: 'socio', persona: result.rows[0] });
+        }
+        // Verificar si es empleado
+        const empleadoResult = await pool.query('SELECT 1 FROM EMPLEADOS WHERE ID_Empleado = $1', [ID_Persona]);
+        if (empleadoResult.rowCount > 0) {
+            return res.json({ mensaje: 'Login exitoso', tipo: 'empleado', persona: result.rows[0] });
+        }
+        // Si no es socio ni empleado
+        return res.status(403).json({ mensaje: 'Usuario sin rol válido' });
     } catch (error) {
         console.error(error.message);
         res.status(500).send('Error en el login');
     }
 });
+
 
 
 // Endpoint para modificar el estado de un socio
@@ -100,6 +123,6 @@ const opcionesSSL = {
     cert: fs.readFileSync('./certificados/cert.pem')
 };
 
-https.createServer(opcionesSSL, app).listen(puerto, () => {
-    console.log('Servidor HTTPS corriendo en el puerto ' + puerto);
+https.createServer(opcionesSSL, app).listen(puerto, '0.0.0.0', () => {
+    console.log('Servidor HTTPS corriendo en el puerto ' + puerto + ' (todas las interfaces)');
 });

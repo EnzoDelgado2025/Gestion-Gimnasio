@@ -53,15 +53,25 @@
             const mensaje = document.getElementById('mensaje');
             mensaje.textContent = '';
             try {
-                const res = await fetch('https://localhost:3000/login_socio', {
+                const res = await fetch('https://192.168.100.8:3000/login_socio', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ID_Persona, password })
+                    body: JSON.stringify({ ID_Persona, password }),
+                    credentials: 'include'
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    mensaje.style.color = 'green';
-                    mensaje.textContent = data.mensaje;
+                    // Guardar usuario logueado en localStorage
+                    localStorage.setItem('usuario_logueado', data.persona.Nombre);
+                    // Redirigir según tipo
+                    if (data.tipo === 'socio') {
+                        window.location.href = 'panel_secundario.html';
+                    } else if (data.tipo === 'empleado') {
+                        window.location.href = 'panel_principal.html';
+                    } else {
+                        mensaje.style.color = '#d00';
+                        mensaje.textContent = 'Rol no permitido';
+                    }
                 } else {
                     mensaje.style.color = '#d00';
                     mensaje.textContent = data.mensaje || 'Error en el login';
