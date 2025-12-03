@@ -3,114 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <title>GymMax - Tu gimnasio online</title>
+    <link rel="stylesheet" href="footer.css">
     <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(120deg, #e0eafc 0%, #cfdef3 100%);
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f5f7fa;
         }
         .hero {
-            background: linear-gradient(90deg, #007bff 60%, #00c6ff 100%);
+            background: linear-gradient(135deg, rgba(0, 123, 255, 0.9) 0%, rgba(0, 198, 255, 0.9) 100%), 
+                        url('../imagenes/publicidad.png') center/cover;
             color: #fff;
-            padding: 3em 1em 2em 1em;
+            padding: 5em 1em 4em 1em;
             text-align: center;
+            position: relative;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 1;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 700px;
+        }
+        .hero img {
+            width: 100px;
+            margin-bottom: 1.5em;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
         .hero h1 {
-            font-size: 2.5em;
-            margin-bottom: 0.3em;
+            font-size: 3em;
+            margin-bottom: 0.5em;
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
         .hero p {
-            font-size: 1.2em;
-            margin-bottom: 1.5em;
+            font-size: 1.3em;
+            margin-bottom: 2em;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+            line-height: 1.6;
         }
         .btn-login {
             background: #fff;
             color: #007bff;
             border: none;
-            border-radius: 5px;
-            padding: 0.8em 2em;
+            border-radius: 50px;
+            padding: 1.1em 2.5em;
             font-size: 1.1em;
             cursor: pointer;
             font-weight: bold;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            transition: background 0.2s, color 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            display: inline-block;
         }
         .btn-login:hover {
             background: #007bff;
             color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
         .features {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 2em;
-            margin: 2em auto 3em auto;
-            max-width: 900px;
+            margin: 3em auto;
+            max-width: 1100px;
+            padding: 0 1em;
         }
         .feature {
             background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            padding: 1.5em 1.2em;
-            flex: 1 1 220px;
-            min-width: 220px;
-            max-width: 270px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            padding: 2em 1.5em;
+            flex: 1 1 250px;
+            min-width: 250px;
+            max-width: 280px;
             text-align: center;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+        .feature:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+            border-color: #007bff;
         }
         .feature img {
-            width: 48px;
+            width: 60px;
+            margin-bottom: 1em;
+            filter: drop-shadow(0 2px 4px rgba(0, 123, 255, 0.2));
+        }
+        .feature h4 {
+            color: #007bff;
+            font-size: 1.2em;
             margin-bottom: 0.7em;
         }
+        .feature p {
+            color: #666;
+            line-height: 1.6;
+        }
         .membresias-section {
-            background: #f8f9fa;
-            padding: 2em 0 3em 0;
+            background: linear-gradient(135deg, #f0f4ff 0%, #f8faff 100%);
+            padding: 4em 1em;
+            border-top: 3px solid #007bff;
         }
         .membresias-title {
             text-align: center;
-            font-size: 2em;
+            font-size: 2.5em;
             color: #007bff;
-            margin-bottom: 1.2em;
+            margin-bottom: 2em;
+            font-weight: 700;
         }
         .membresias {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 2em;
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
         }
         .membresia-card {
             background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            padding: 1.5em 1.2em;
-            min-width: 220px;
-            max-width: 260px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            padding: 2em 1.5em;
+            min-width: 250px;
+            max-width: 280px;
             text-align: center;
-            border: 2px solid #007bff22;
+            border: 3px solid #007bff33;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .membresia-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 198, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        .membresia-card:hover::before {
+            left: 100%;
+        }
+        .membresia-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.2);
+            border-color: #007bff;
         }
         .membresia-card h3 {
             color: #007bff;
-            margin-bottom: 0.5em;
+            margin-bottom: 0.7em;
+            font-size: 1.4em;
         }
         .membresia-card .precio {
-            font-size: 1.5em;
+            font-size: 2em;
             color: #00c6ff;
-            margin: 0.5em 0 0.7em 0;
+            margin: 0.8em 0;
+            font-weight: bold;
         }
         .membresia-card .duracion {
-            color: #555;
-            margin-bottom: 0.7em;
+            color: #999;
+            margin-bottom: 1em;
+            font-size: 0.95em;
+        }
+        .membresia-card p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2em;
+            }
+            .hero p {
+                font-size: 1.1em;
+            }
+            .membresias-title {
+                font-size: 1.8em;
+            }
+            .feature, .membresia-card {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="hero">
-        <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Logo Gimnasio" style="width:90px; margin-bottom:1em;">
-        <h1>¡Entrena donde y cuando quieras!</h1>
-        <p>Accede a clases, rutinas y planes personalizados en GymMax. Vive la experiencia fitness más completa, moderna y flexible.</p>
-        <button class="btn-login" onclick="window.location.href='login.html'">Iniciar sesión</button>
+        <div class="hero-content">
+            <img src="https://cdn-icons-png.flaticon.com/512/1048/1048953.png" alt="Logo Gimnasio">
+            <h1>¡Entrena donde y cuando quieras!</h1>
+            <p>Accede a clases, rutinas y planes personalizados en GymMax. Vive la experiencia fitness más completa, moderna y flexible.</p>
+            <button class="btn-login" onclick="window.location.href='login.html'">Iniciar sesión</button>
+        </div>
     </div>
     <div class="features">
         <div class="feature">
@@ -163,5 +267,6 @@
             </div>
         </div>
     </div>
+    <script src="footer.js"></script>
 </body>
 </html>

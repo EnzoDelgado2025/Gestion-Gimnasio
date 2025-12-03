@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Secundario</title>
+    <link rel="stylesheet" href="footer.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -66,6 +67,19 @@
         .salir:hover {
             background: #c0392b;
         }
+        .contenedor-principal {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: 400px;
+        }
+        .contenedor-principal img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -85,8 +99,10 @@
             <li><a href="inicio.html" style="color:inherit; text-decoration:none; display:block;">Inicio</a></li>
             <li>Maquinas
                 <ul>
-                    <li>Consulta de máquinas</li>
-                    <li>Reserva de máquinas</li>
+                    <li><a href="Máquinas/consulta_maquinas.html" style="color:inherit; text-decoration:none; display:block;">Consulta de máquinas</a></li>
+                    <li><a href="Máquinas/reservar_maquina.html" style="color:inherit; text-decoration:none; display:block;">Reservar máquina</a></li>
+                    <li><a href="Máquinas/consultar_reservas.html" style="color:inherit; text-decoration:none; display:block;">Consultar mis reservas</a></li>
+                    <li><a href="Máquinas/cancelar_reserva.html" style="color:inherit; text-decoration:none; display:block;">Cancelar reserva</a></li>
                 </ul>
             </li>
             <li>Membresías
@@ -97,11 +113,17 @@
             </li>
             <li>Facturación
                 <ul>
-                    <li>Pagos</li>
+                    <li><a href="Facturación/registrar_pago.html" style="color:inherit; text-decoration:none; display:block;">Registrar Pago</a></li>
+                    <li><a href="Facturación/consultar_pagos.html" style="color:inherit; text-decoration:none; display:block;">Consultar Pagos</a></li>
+                    <li><a href="Facturación/comprobante_pago.html" style="color:inherit; text-decoration:none; display:block;">Comprobante de Pago</a></li>
                 </ul>
             </li>
             <li class="salir" onclick="salir()">Salir</li>
         </ul>
     </nav>
+    <div class="contenedor-principal">
+        <img src="../imagenes/menu_socio.png" alt="Menú Socio">
+    </div>
+    <script src="footer.js"></script>
 </body>
 </html>

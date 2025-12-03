@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Membresía</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 700px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .campo-grupo {
+            margin-bottom: 1.2em;
+        }
+        .campo-grupo label {
+            display: block;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input[type="text"], input[type="date"], select {
+            width: 100%;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 0.8em;
+            background: #27ae60;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #229954;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+            font-weight: bold;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 1em;
+            border-radius: 4px;
+            margin-top: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Registrar Membresía</h2>
+        
+        <div class="campo-grupo">
+            <label for="idSocio">Cédula del Socio</label>
+            <input type="text" id="idSocio" pattern="^[0-9]{10}$" maxlength="10" minlength="10" placeholder="10 dígitos" required title="Debe tener exactamente 10 dígitos" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        </div>
+
+        <div class="campo-grupo">
+            <label for="idPlan">Plan de Membresía</label>
+            <select id="idPlan" required onchange="actualizarFechas()">
+                <option value="">Seleccione un plan...</option>
+            </select>
+        </div>
+
+        <div class="info" id="infoPlan" style="display: none;">
+            <strong>Información del Plan:</strong>
+            <p>Duración: <span id="duracionPlan">-</span> días | Precio: $<span id="precioPlan">-</span></p>
+        </div>
+
+        <div class="campo-grupo">
+            <label for="fechaInicio">Fecha de Inicio</label>
+            <input type="date" id="fechaInicio" required>
+        </div>
+
+        <div class="campo-grupo">
+            <label for="fechaFin">Fecha de Fin</label>
+            <input type="date" id="fechaFin" required readonly>
+        </div>
+
+        <button onclick="registrarMembresia()">Registrar Membresía</button>
+        
+        <div class="mensaje" id="mensaje"></div>
+    </div>
+
+    <script>
+        let planesMembresia = [];
+
+        // Cargar planes al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarPlanes();
+            // Establecer fecha de inicio a hoy
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaInicio').value = hoy;
+        });
+
+        function cargarPlanes() {
+            fetch('https://192.168.100.8:3000/planes_membresia')
+                .then(res => res.json())
+                .then(data => {
+                    planesMembresia = data;
+                    const select = document.getElementById('idPlan');
+                    data.forEach(plan => {
+                        const option = document.createElement('option');
+                        option.value = plan.id_plan;
+                        option.textContent = plan.nombreplan + ' - $' + parseFloat(plan.precio).toFixed(2);
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar planes:', error);
+                });
+        }
+
+        function actualizarFechas() {
+            const idPlan = document.getElementById('idPlan').value;
+            const plan = planesMembresia.find(p => p.id_plan == idPlan);
+            
+            if (plan) {
+                document.getElementById('duracionPlan').textContent = plan.duraciondias;
+                document.getElementById('precioPlan').textContent = parseFloat(plan.precio).toFixed(2);
+                document.getElementById('infoPlan').style.display = 'block';
+
+                const fechaInicio = new Date(document.getElementById('fechaInicio').value);
+                const fechaFin = new Date(fechaInicio);
+                fechaFin.setDate(fechaFin.getDate() + plan.duraciondias);
+                document.getElementById('fechaFin').value = fechaFin.toISOString().split('T')[0];
+            } else {
+                document.getElementById('infoPlan').style.display = 'none';
+                document.getElementById('fechaFin').value = '';
+            }
+        }
+
+        document.getElementById('fechaInicio').addEventListener('change', actualizarFechas);
+
+        function registrarMembresia() {
+            const idSocio = document.getElementById('idSocio').value.trim();
+            const idPlan = document.getElementById('idPlan').value;
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            const mensaje = document.getElementById('mensaje');
+
+            mensaje.className = 'mensaje';
+
+            // Validaciones
+            if (!idSocio || !idPlan || !fechaInicio || !fechaFin) {
+                mensaje.textContent = 'Todos los campos son requeridos.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(idSocio)) {
+                mensaje.textContent = 'La cédula debe tener exactamente 10 dígitos.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (new Date(fechaFin) <= new Date(fechaInicio)) {
+                mensaje.textContent = 'La fecha de fin debe ser mayor a la fecha de inicio.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            fetch('https://192.168.100.8:3000/registro_membresia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ID_Socio: idSocio,
+                    ID_Plan: parseInt(idPlan),
+                    FechaInicio: fechaInicio,
+                    FechaFin: fechaFin
+                })
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Error al registrar la membresía');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    mensaje.className = 'mensaje success';
+                    mensaje.textContent = 'Membresía registrada correctamente. ID: ' + data.membresia.id_membresia;
+                    document.getElementById('idSocio').value = '';
+                    document.getElementById('idPlan').value = '';
+                    const hoy = new Date().toISOString().split('T')[0];
+                    document.getElementById('fechaInicio').value = hoy;
+                    document.getElementById('fechaFin').value = '';
+                    document.getElementById('infoPlan').style.display = 'none';
+                    setTimeout(() => {
+                        mensaje.style.display = 'none';
+                    }, 3000);
+                })
+                .catch(error => {
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = 'Error al registrar la membresía. Verifique que el socio existe.';
+                });
+        }
+
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                registrarMembresia();
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

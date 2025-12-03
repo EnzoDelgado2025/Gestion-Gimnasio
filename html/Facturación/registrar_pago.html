@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Pago de Membresía</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 700px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .campo-grupo {
+            margin-bottom: 1.2em;
+        }
+        .campo-grupo label {
+            display: block;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 0.8em;
+            background: #27ae60;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #229954;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+            font-weight: bold;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 1em;
+            border-radius: 4px;
+            margin-top: 1em;
+            display: none;
+        }
+        .info.visible {
+            display: block;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5em;
+        }
+        .resumen {
+            background: #e8f8f5;
+            border: 1px solid #27ae60;
+            padding: 1em;
+            border-radius: 4px;
+            margin-top: 1em;
+            display: none;
+        }
+        .resumen.visible {
+            display: block;
+        }
+        .resumen h4 {
+            color: #27ae60;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Registrar Pago de Membresía</h2>
+        
+        <div class="campo-grupo">
+            <label for="idMembresia">ID de Membresía</label>
+            <input type="number" id="idMembresia" min="1" placeholder="Ingrese el ID de la membresía" required>
+        </div>
+
+        <div class="info" id="infoMembresia">
+            <strong>Información de la Membresía:</strong>
+            <div class="info-item">
+                <span>Socio:</span>
+                <span id="nombreSocio">-</span>
+            </div>
+            <div class="info-item">
+                <span>Plan:</span>
+                <span id="nombrePlan">-</span>
+            </div>
+            <div class="info-item">
+                <span>Precio:</span>
+                <span id="precioPlan">-</span>
+            </div>
+            <div class="info-item">
+                <span>Vigencia:</span>
+                <span id="vigencia">-</span>
+            </div>
+        </div>
+
+        <div class="campo-grupo">
+            <label for="monto">Monto a Pagar ($)</label>
+            <input type="number" id="monto" min="0.01" step="0.01" placeholder="0.00" required>
+        </div>
+
+        <div class="campo-grupo">
+            <label for="metodoPago">Método de Pago</label>
+            <select id="metodoPago" required>
+                <option value="">Seleccione un método...</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                <option value="Transferencia">Transferencia Bancaria</option>
+            </select>
+        </div>
+
+        <div class="resumen" id="resumen">
+            <h4>Resumen del Pago</h4>
+            <div class="info-item">
+                <span>Monto a Pagar:</span>
+                <span id="resumenMonto">$0.00</span>
+            </div>
+            <div class="info-item">
+                <span>Método:</span>
+                <span id="resumenMetodo">-</span>
+            </div>
+        </div>
+
+        <button onclick="registrarPago()">Registrar Pago</button>
+        
+        <div class="mensaje" id="mensaje"></div>
+    </div>
+
+    <script>
+        let membresiaActual = null;
+
+        // Buscar membresía al cambiar ID
+        document.getElementById('idMembresia').addEventListener('change', function() {
+            const idMembresia = this.value;
+            if (idMembresia) {
+                buscarMembresia(idMembresia);
+            }
+        });
+
+        // Actualizar resumen al cambiar monto o método
+        document.getElementById('monto').addEventListener('input', actualizarResumen);
+        document.getElementById('metodoPago').addEventListener('change', actualizarResumen);
+
+        function buscarMembresia(idMembresia) {
+            const mensaje = document.getElementById('mensaje');
+            const infoMembresia = document.getElementById('infoMembresia');
+
+            mensaje.className = 'mensaje';
+
+            if (!idMembresia) {
+                infoMembresia.classList.remove('visible');
+                membresiaActual = null;
+                return;
+            }
+
+            fetch(`https://192.168.100.8:3000/membresias/${idMembresia}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Membresía no encontrada');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    membresiaActual = data;
+                    document.getElementById('nombreSocio').textContent = data.nombre + ' ' + data.apellido;
+                    document.getElementById('nombrePlan').textContent = data.nombreplan;
+                    document.getElementById('precioPlan').textContent = '$' + parseFloat(data.precio).toFixed(2);
+                    document.getElementById('vigencia').textContent = data.fechainicio + ' a ' + data.fechafin;
+                    
+                    // Sugerir monto igual al precio del plan
+                    document.getElementById('monto').value = data.precio;
+                    
+                    infoMembresia.classList.add('visible');
+                    mensaje.textContent = '';
+                    actualizarResumen();
+                })
+                .catch(error => {
+                    infoMembresia.classList.remove('visible');
+                    membresiaActual = null;
+                    mensaje.textContent = 'Membresía no encontrada.';
+                    mensaje.classList.add('error');
+                });
+        }
+
+        function actualizarResumen() {
+            const monto = document.getElementById('monto').value;
+            const metodo = document.getElementById('metodoPago').value;
+            const resumen = document.getElementById('resumen');
+
+            if (monto && metodo) {
+                document.getElementById('resumenMonto').textContent = '$' + parseFloat(monto).toFixed(2);
+                document.getElementById('resumenMetodo').textContent = metodo;
+                resumen.classList.add('visible');
+            } else {
+                resumen.classList.remove('visible');
+            }
+        }
+
+        function registrarPago() {
+            const idMembresia = document.getElementById('idMembresia').value;
+            const monto = document.getElementById('monto').value;
+            const metodo = document.getElementById('metodoPago').value;
+            const mensaje = document.getElementById('mensaje');
+
+            mensaje.className = 'mensaje';
+
+            // Validaciones
+            if (!idMembresia || !monto || !metodo) {
+                mensaje.textContent = 'Todos los campos son requeridos.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (parseFloat(monto) <= 0) {
+                mensaje.textContent = 'El monto debe ser mayor a 0.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (!membresiaActual) {
+                mensaje.textContent = 'Debe buscar una membresía válida.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            fetch('https://192.168.100.8:3000/registrar_pago', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ID_Membresia: parseInt(idMembresia),
+                    MontoPagado: parseFloat(monto),
+                    MetodoPago: metodo
+                })
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Error al registrar el pago');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    mensaje.className = 'mensaje success';
+                    mensaje.textContent = 'Pago registrado correctamente. ID Pago: ' + data.pago.id_pago;
+                    
+                    // Limpiar formulario
+                    document.getElementById('idMembresia').value = '';
+                    document.getElementById('monto').value = '';
+                    document.getElementById('metodoPago').value = '';
+                    document.getElementById('infoMembresia').classList.remove('visible');
+                    document.getElementById('resumen').classList.remove('visible');
+                    membresiaActual = null;
+                    
+                    setTimeout(() => {
+                        mensaje.style.display = 'none';
+                    }, 3000);
+                })
+                .catch(error => {
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = 'Error al registrar el pago.';
+                });
+        }
+
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                registrarPago();
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

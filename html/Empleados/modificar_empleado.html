@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Modificar Empleado</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 800px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .formulario {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 2em;
+            flex-wrap: wrap;
+        }
+        input[type="text"], input[type="date"], input[type="number"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            padding: 0.7em 1.5em;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            display: none;
+        }
+        table.visible {
+            display: table;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 0.7em;
+            text-align: left;
+        }
+        th {
+            background: #007bff;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            color: #d00; 
+            font-weight: bold; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+        .seccion {
+            margin-top: 2em;
+        }
+        .seccion h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 0.5em;
+        }
+        .campo-grupo {
+            margin-bottom: 1.2em;
+        }
+        .campo-grupo label {
+            display: block;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 0.95em;
+        }
+        .campo-grupo input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Modificar Empleado</h2>
+        
+        <div class="seccion">
+            <h3>Buscar Empleado</h3>
+            <div class="formulario">
+                <input type="text" id="idEmpleado" placeholder="Ingrese el ID del empleado (cédula)" pattern="^[0-9]{10}$" maxlength="10" minlength="10" required title="Debe tener exactamente 10 dígitos numéricos" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                <button onclick="buscarEmpleado()">Buscar</button>
+            </div>
+        </div>
+
+        <div class="mensaje" id="mensaje"></div>
+
+        <table id="tablaEmpleado">
+            <thead>
+                <tr>
+                    <th>Campo</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+        </table>
+
+        <div class="seccion" id="seccionModificar" style="display: none;">
+            <h3>Actualizar Datos</h3>
+            <div class="campo-grupo">
+                <label for="nombre">Nombre</label>
+                <input type="text" id="nombre" maxlength="50" pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$" title="Solo letras y espacios" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g, '')">
+            </div>
+            <div class="campo-grupo">
+                <label for="apellido">Apellido</label>
+                <input type="text" id="apellido" maxlength="50" pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$" title="Solo letras y espacios" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g, '')">
+            </div>
+            <div class="campo-grupo">
+                <label for="fechaNacimiento">Fecha de Nacimiento</label>
+                <input type="date" id="fechaNacimiento">
+            </div>
+            <div class="campo-grupo">
+                <label for="telefono">Teléfono</label>
+                <input type="text" id="telefono" pattern="^[0-9]{7,15}$" title="Solo números, entre 7 y 15 dígitos">
+            </div>
+            <div class="campo-grupo">
+                <label for="email">Email</label>
+                <input type="email" id="email" maxlength="100">
+            </div>
+            <div class="campo-grupo">
+                <label for="cargo">Cargo</label>
+                <input type="text" id="cargo" maxlength="50" pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$" title="Solo letras y espacios" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g, '')">
+            </div>
+            <div class="campo-grupo">
+                <label for="salario">Salario</label>
+                <input type="number" id="salario" step="0.01" min="0">
+            </div>
+            <div class="campo-grupo">
+                <label for="fechaContratacion">Fecha de Contratación</label>
+                <input type="date" id="fechaContratacion">
+            </div>
+            <div class="formulario">
+                <button onclick="modificarEmpleado()">Actualizar Empleado</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let idEmpleadoActual = null;
+
+        function buscarEmpleado() {
+            const idEmpleado = document.getElementById('idEmpleado').value.trim();
+            const mensaje = document.getElementById('mensaje');
+            const tabla = document.getElementById('tablaEmpleado');
+            const cuerpoTabla = document.getElementById('cuerpoTabla');
+            const seccionModificar = document.getElementById('seccionModificar');
+
+            mensaje.className = 'mensaje';
+            tabla.classList.remove('visible');
+            seccionModificar.style.display = 'none';
+            cuerpoTabla.innerHTML = '';
+
+            if (!idEmpleado) {
+                mensaje.textContent = 'Por favor ingrese un ID de empleado.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(idEmpleado)) {
+                mensaje.textContent = 'El ID debe tener exactamente 10 dígitos numéricos.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            fetch(`https://192.168.100.8:3000/empleados/${idEmpleado}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Empleado no encontrado');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    idEmpleadoActual = data.id_persona;
+                    const campos = [
+                        { nombre: 'ID Persona', valor: data.id_persona },
+                        { nombre: 'Nombre', valor: data.nombre },
+                        { nombre: 'Apellido', valor: data.apellido },
+                        { nombre: 'Fecha de Nacimiento', valor: data.fechanacimiento },
+                        { nombre: 'Teléfono', valor: data.telefono },
+                        { nombre: 'Email', valor: data.email },
+                        { nombre: 'Cargo', valor: data.cargo },
+                        { nombre: 'Salario', valor: data.salario },
+                        { nombre: 'Fecha de Contratación', valor: data.fechacontratacion }
+                    ];
+
+                    campos.forEach(campo => {
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `<td><strong>${campo.nombre}</strong></td><td>${campo.valor || 'N/A'}</td>`;
+                        cuerpoTabla.appendChild(fila);
+                    });
+
+                    // Llenar los campos de modificación
+                    document.getElementById('nombre').value = data.nombre;
+                    document.getElementById('apellido').value = data.apellido;
+                    document.getElementById('fechaNacimiento').value = data.fechanacimiento;
+                    document.getElementById('telefono').value = data.telefono;
+                    document.getElementById('email').value = data.email;
+                    document.getElementById('cargo').value = data.cargo;
+                    document.getElementById('salario').value = data.salario;
+                    document.getElementById('fechaContratacion').value = data.fechacontratacion;
+
+                    tabla.classList.add('visible');
+                    seccionModificar.style.display = 'block';
+                    mensaje.textContent = 'Empleado encontrado. Puede modificar sus datos.';
+                    mensaje.classList.add('success');
+                })
+                .catch(error => {
+                    mensaje.textContent = error.message === 'Empleado no encontrado' ? 'Empleado no encontrado.' : 'Error al consultar el empleado.';
+                    mensaje.classList.add('error');
+                    idEmpleadoActual = null;
+                });
+        }
+
+        function modificarEmpleado() {
+            const mensaje = document.getElementById('mensaje');
+            
+            if (!idEmpleadoActual) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'Por favor busque primero un empleado.';
+                return;
+            }
+
+            const nombre = document.getElementById('nombre').value.trim();
+            const apellido = document.getElementById('apellido').value.trim();
+            const fechaNacimiento = document.getElementById('fechaNacimiento').value;
+            const telefono = document.getElementById('telefono').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const cargo = document.getElementById('cargo').value.trim();
+            const salario = document.getElementById('salario').value;
+            const fechaContratacion = document.getElementById('fechaContratacion').value;
+
+            // Validaciones
+            if (!nombre || !apellido || !fechaNacimiento || !telefono || !email || !cargo || !salario || !fechaContratacion) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'Todos los campos son requeridos.';
+                return;
+            }
+
+            if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/.test(nombre)) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'El nombre solo puede contener letras y espacios.';
+                return;
+            }
+
+            if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/.test(apellido)) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'El apellido solo puede contener letras y espacios.';
+                return;
+            }
+
+            if (!/^[0-9]{7,15}$/.test(telefono)) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'El teléfono debe tener entre 7 y 15 dígitos.';
+                return;
+            }
+
+            if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'El email no es válido.';
+                return;
+            }
+
+            fetch(`https://192.168.100.8:3000/modificar_empleado/${idEmpleadoActual}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    Nombre: nombre,
+                    Apellido: apellido,
+                    FechaNacimiento: fechaNacimiento,
+                    Telefono: telefono,
+                    Email: email,
+                    Cargo: cargo,
+                    Salario: salario,
+                    FechaContratacion: fechaContratacion
+                })
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Error al modificar el empleado');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    mensaje.className = 'mensaje success';
+                    mensaje.textContent = 'Empleado actualizado correctamente.';
+                    setTimeout(() => {
+                        buscarEmpleado();
+                    }, 1500);
+                })
+                .catch(error => {
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = 'Error al modificar el empleado.';
+                });
+        }
+
+        document.getElementById('idEmpleado').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarEmpleado();
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

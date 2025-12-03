@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Consultar Pagos</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 1100px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .controles {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 1.5em;
+            flex-wrap: wrap;
+        }
+        input[type="text"], input[type="number"] {
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        select {
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            padding: 0.7em 1.5em;
+            background: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            display: none;
+        }
+        table.visible {
+            display: table;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 0.7em;
+            text-align: left;
+        }
+        th {
+            background: #3498db;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        tr:hover {
+            background: #e8f4f8;
+        }
+        .estado-completado {
+            background: #d5f4e6;
+            padding: 0.3em 0.6em;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        .estado-pendiente {
+            background: #fff3cd;
+            padding: 0.3em 0.6em;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+            font-weight: bold;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+        .resumen {
+            background: #ecf0f1;
+            padding: 1em;
+            border-radius: 4px;
+            margin-top: 1em;
+            display: none;
+        }
+        .resumen.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Consultar Pagos</h2>
+        
+        <div class="controles">
+            <select id="tipoConsulta" onchange="cambiarTipoConsulta()" style="min-width: 200px;">
+                <option value="todos">Todos los Pagos</option>
+                <option value="membresia">Por ID de Membresía</option>
+                <option value="socio">Por Cédula de Socio</option>
+                <option value="pago">Por ID de Pago</option>
+            </select>
+            <input type="number" id="inputConsulta" placeholder="ID de membresía" style="display: none; min-width: 200px;" min="1">
+            <input type="text" id="inputConsultaSocio" placeholder="Cédula del socio" style="display: none; min-width: 200px;" pattern="^[0-9]{10}$" maxlength="10" minlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <button onclick="cargarPagos()">Cargar</button>
+        </div>
+
+        <div class="resumen" id="resumen">
+            <strong>Resumen:</strong>
+            <p>Total de pagos: <span id="totalPagos">0</span> | Monto total: <span id="montoTotal">$0.00</span></p>
+        </div>
+
+        <table id="tablaPagos">
+            <thead>
+                <tr>
+                    <th>ID Pago</th>
+                    <th>ID Membresía</th>
+                    <th>Socio</th>
+                    <th>Plan</th>
+                    <th>Monto</th>
+                    <th>Fecha Pago</th>
+                    <th>Método</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+        </table>
+
+        <div class="mensaje" id="mensaje"></div>
+    </div>
+
+    <script>
+        function cambiarTipoConsulta() {
+            const tipoConsulta = document.getElementById('tipoConsulta').value;
+            const inputConsulta = document.getElementById('inputConsulta');
+            const inputConsultaSocio = document.getElementById('inputConsultaSocio');
+            
+            inputConsulta.style.display = 'none';
+            inputConsultaSocio.style.display = 'none';
+
+            if (tipoConsulta === 'membresia') {
+                inputConsulta.style.display = 'inline-block';
+                inputConsulta.placeholder = 'ID de membresía';
+                inputConsulta.focus();
+            } else if (tipoConsulta === 'socio') {
+                inputConsultaSocio.style.display = 'inline-block';
+                inputConsultaSocio.focus();
+            } else if (tipoConsulta === 'pago') {
+                inputConsulta.style.display = 'inline-block';
+                inputConsulta.placeholder = 'ID de pago';
+                inputConsulta.focus();
+            }
+        }
+
+        function cargarPagos() {
+            const tipoConsulta = document.getElementById('tipoConsulta').value;
+            const inputConsulta = document.getElementById('inputConsulta').value.trim();
+            const inputConsultaSocio = document.getElementById('inputConsultaSocio').value.trim();
+            const mensaje = document.getElementById('mensaje');
+            const tabla = document.getElementById('tablaPagos');
+            const cuerpoTabla = document.getElementById('cuerpoTabla');
+            const resumen = document.getElementById('resumen');
+
+            mensaje.className = 'mensaje';
+            cuerpoTabla.innerHTML = '';
+            tabla.classList.remove('visible');
+            resumen.classList.remove('visible');
+
+            let url = 'https://192.168.100.8:3000/pagos';
+
+            if (tipoConsulta === 'membresia') {
+                if (!inputConsulta) {
+                    mensaje.textContent = 'Por favor ingrese un ID de membresía.';
+                    mensaje.classList.add('error');
+                    return;
+                }
+                url = `https://192.168.100.8:3000/pagos_membresia/${inputConsulta}`;
+            } else if (tipoConsulta === 'socio') {
+                if (!inputConsultaSocio) {
+                    mensaje.textContent = 'Por favor ingrese una cédula de socio.';
+                    mensaje.classList.add('error');
+                    return;
+                }
+                if (!/^[0-9]{10}$/.test(inputConsultaSocio)) {
+                    mensaje.textContent = 'La cédula debe tener exactamente 10 dígitos.';
+                    mensaje.classList.add('error');
+                    return;
+                }
+                url = `https://192.168.100.8:3000/pagos_socio/${inputConsultaSocio}`;
+            } else if (tipoConsulta === 'pago') {
+                if (!inputConsulta) {
+                    mensaje.textContent = 'Por favor ingrese un ID de pago.';
+                    mensaje.classList.add('error');
+                    return;
+                }
+                url = `https://192.168.100.8:3000/pagos/${inputConsulta}`;
+            }
+
+            fetch(url)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Error al consultar los pagos');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    // Convertir a array si es un objeto único
+                    let pagos = Array.isArray(data) ? data : [data];
+
+                    if (pagos.length === 0) {
+                        mensaje.className = 'mensaje error';
+                        mensaje.textContent = 'No se encontraron pagos.';
+                        return;
+                    }
+
+                    let montoTotal = 0;
+                    pagos.forEach(pago => {
+                        const fila = document.createElement('tr');
+                        const estadoClass = pago.estado === 'Completado' ? 'estado-completado' : 'estado-pendiente';
+                        fila.innerHTML = `
+                            <td>${pago.id_pago}</td>
+                            <td>${pago.id_membresia}</td>
+                            <td>${pago.nombre} ${pago.apellido}</td>
+                            <td>${pago.nombreplan}</td>
+                            <td>$${parseFloat(pago.montopagado).toFixed(2)}</td>
+                            <td>${pago.fechapago ? pago.fechapago.substring(0, 10) : '-'}</td>
+                            <td>${pago.metodopago}</td>
+                            <td><span class="${estadoClass}">${pago.estado}</span></td>
+                        `;
+                        cuerpoTabla.appendChild(fila);
+                        montoTotal += parseFloat(pago.montopagado);
+                    });
+
+                    document.getElementById('totalPagos').textContent = pagos.length;
+                    document.getElementById('montoTotal').textContent = '$' + montoTotal.toFixed(2);
+
+                    tabla.classList.add('visible');
+                    resumen.classList.add('visible');
+                    mensaje.className = 'mensaje success';
+                    mensaje.textContent = `Se encontraron ${pagos.length} pago(s).`;
+                })
+                .catch(error => {
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = 'Error al consultar los pagos.';
+                });
+        }
+
+        document.getElementById('inputConsulta').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                cargarPagos();
+            }
+        });
+
+        document.getElementById('inputConsultaSocio').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                cargarPagos();
+            }
+        });
+
+        // Cargar todos los pagos al iniciar
+        window.addEventListener('load', function() {
+            cargarPagos();
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

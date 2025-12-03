@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Modificar Estado de Máquina</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 800px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .formulario {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 2em;
+            flex-wrap: wrap;
+        }
+        input[type="number"], select {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            padding: 0.7em 1.5em;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            display: none;
+        }
+        table.visible {
+            display: table;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 0.7em;
+            text-align: left;
+        }
+        th {
+            background: #007bff;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            color: #d00; 
+            font-weight: bold; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+        .seccion {
+            margin-top: 2em;
+        }
+        .seccion h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 0.5em;
+        }
+        img.maquina-imagen {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 6px;
+            margin-top: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Modificar Estado de Máquina</h2>
+        
+        <div class="seccion">
+            <h3>Buscar Máquina</h3>
+            <div class="formulario">
+                <input type="number" id="idMaquina" placeholder="Ingrese el ID de la máquina" min="1" required>
+                <button onclick="buscarMaquina()">Buscar</button>
+            </div>
+        </div>
+
+        <div class="mensaje" id="mensaje"></div>
+
+        <table id="tablaMaquina">
+            <thead>
+                <tr>
+                    <th>Campo</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+        </table>
+
+        <div id="imagenContainer" style="display: none;">
+            <img id="maquinaImagen" class="maquina-imagen" alt="Imagen de máquina">
+        </div>
+
+        <div class="seccion" id="seccionModificar" style="display: none;">
+            <h3>Modificar Estado</h3>
+            <div class="formulario">
+                <select id="nuevoEstado" required>
+                    <option value="">Seleccione nuevo estado...</option>
+                    <option value="Operativa">Operativa</option>
+                    <option value="Averiada">Averiada</option>
+                </select>
+                <button onclick="modificarEstado()">Actualizar Estado</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let idMaquinaActual = null;
+
+        function buscarMaquina() {
+            const idMaquina = document.getElementById('idMaquina').value.trim();
+            const mensaje = document.getElementById('mensaje');
+            const tabla = document.getElementById('tablaMaquina');
+            const cuerpoTabla = document.getElementById('cuerpoTabla');
+            const seccionModificar = document.getElementById('seccionModificar');
+            const imagenContainer = document.getElementById('imagenContainer');
+
+            mensaje.className = 'mensaje';
+            tabla.classList.remove('visible');
+            seccionModificar.style.display = 'none';
+            imagenContainer.style.display = 'none';
+            cuerpoTabla.innerHTML = '';
+
+            if (!idMaquina) {
+                mensaje.textContent = 'Por favor ingrese un ID de máquina.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            // Validación: solo números positivos
+            if (!/^\d+$/.test(idMaquina) || parseInt(idMaquina) <= 0) {
+                mensaje.textContent = 'El ID debe ser un número positivo.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            fetch(`https://192.168.100.8:3000/consultar_maquinas/${idMaquina}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Máquina no encontrada');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    idMaquinaActual = data.id_maquina;
+                    const campos = [
+                        { nombre: 'ID Máquina', valor: data.id_maquina },
+                        { nombre: 'Nombre', valor: data.nombre },
+                        { nombre: 'Tipo', valor: data.tipo },
+                        { nombre: 'Último Mantenimiento', valor: data.ultimomantenimiento ? data.ultimomantenimiento.split('T')[0] : 'N/A' },
+                        { nombre: 'Estado Operativo', valor: data.estadooperativo }
+                    ];
+
+                    campos.forEach(campo => {
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `<td><strong>${campo.nombre}</strong></td><td>${campo.valor || 'N/A'}</td>`;
+                        cuerpoTabla.appendChild(fila);
+                    });
+
+                    // Mostrar imagen si existe
+                    if (data.imagen) {
+                        document.getElementById('maquinaImagen').src = data.imagen;
+                        imagenContainer.style.display = 'block';
+                    }
+
+                    tabla.classList.add('visible');
+                    seccionModificar.style.display = 'block';
+                    // Establecer el estado actual como seleccionado
+                    document.getElementById('nuevoEstado').value = data.estadooperativo;
+                    mensaje.textContent = 'Máquina encontrada. Puede modificar su estado.';
+                    mensaje.classList.add('success');
+                })
+                .catch(error => {
+                    mensaje.textContent = error.message === 'Máquina no encontrada' ? 'Máquina no encontrada.' : 'Error al consultar la máquina.';
+                    mensaje.classList.add('error');
+                    idMaquinaActual = null;
+                });
+        }
+
+        function modificarEstado() {
+            const nuevoEstado = document.getElementById('nuevoEstado').value;
+            const mensaje = document.getElementById('mensaje');
+
+            if (!idMaquinaActual) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'Por favor busque primero una máquina.';
+                return;
+            }
+
+            if (!nuevoEstado) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'Por favor seleccione un nuevo estado.';
+                return;
+            }
+
+            fetch(`https://192.168.100.8:3000/modificar_estado_maquina/${idMaquinaActual}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ EstadoOperativo: nuevoEstado })
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Error al modificar el estado');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    mensaje.className = 'mensaje success';
+                    mensaje.textContent = 'Estado de la máquina actualizado correctamente.';
+                    // Recargar los datos de la máquina
+                    setTimeout(() => {
+                        buscarMaquina();
+                    }, 1500);
+                })
+                .catch(error => {
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = 'Error al modificar el estado de la máquina.';
+                });
+        }
+
+        // Permitir búsqueda con Enter
+        document.getElementById('idMaquina').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarMaquina();
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

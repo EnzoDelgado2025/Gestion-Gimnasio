@@ -3,7 +3,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 async function testRegistroPersona() {
   try {
-    const response = await axios.post('https://localhost:3000/registro_persona', {
+  const response = await axios.post('https://192.168.100.8:3000/registro_persona', {
       ID_Persona: '9999999999',
       Nombre: 'Prueba',
       Apellido: 'Test',
