@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Máquina</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .registro-container {
+            background: #fff;
+            padding: 2em;
+            max-width: 500px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        input, select {
+            width: 100%;
+            padding: 0.7em;
+            margin: 0.5em 0 1em 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 0.7em;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .mensaje { margin-top: 1em; color: #d00; }
+    </style>
+</head>
+<body>
+    <div class="registro-container">
+        <h2>Registro de Máquina</h2>
+        <form id="registroMaquinaForm" autocomplete="off">
+            <label for="Nombre">Nombre de la máquina</label>
+            <input type="text" id="Nombre" name="Nombre" maxlength="50" required pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9 ]+$" title="Solo letras, números y espacios" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ0-9 ]/g, '')">
+            <label for="Tipo">Tipo</label>
+            <select id="Tipo" name="Tipo" required>
+                <option value="">Seleccione...</option>
+                <option value="Cardio">Cardio</option>
+                <option value="Fuerza">Fuerza</option>
+                <option value="Funcional">Funcional</option>
+                <option value="Otro">Otro</option>
+            </select>
+            <label for="UltimoMantenimiento">Último Mantenimiento</label>
+            <input type="date" id="UltimoMantenimiento" name="UltimoMantenimiento">
+            <label for="EstadoOperativo">Estado Operativo</label>
+            <select id="EstadoOperativo" name="EstadoOperativo" required>
+                <option value="Operativa">Operativa</option>
+                <option value="Averiada">Averiada</option>
+            </select>
+            <label for="Imagen">Imagen</label>
+            <input type="file" id="Imagen" name="Imagen" accept="image/*">
+            <button type="submit">Registrar Máquina</button>
+        </form>
+        <div class="mensaje" id="mensaje"></div>
+    </div>
+    <script>
+        document.getElementById('registroMaquinaForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const mensaje = document.getElementById('mensaje');
+            mensaje.textContent = '';
+            // Validación JS extra
+            if (!form.Nombre.value.trim().match(/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9 ]+$/)) {
+                mensaje.textContent = 'El nombre solo puede contener letras, números y espacios.';
+                form.Nombre.focus();
+                return;
+            }
+            if (!form.Tipo.value) {
+                mensaje.textContent = 'Debe seleccionar un tipo de máquina.';
+                form.Tipo.focus();
+                return;
+            }
+            if (!form.EstadoOperativo.value) {
+                mensaje.textContent = 'Debe seleccionar el estado operativo.';
+                form.EstadoOperativo.focus();
+                return;
+            }
+            const fileInput = document.getElementById('Imagen');
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                if (!file.type.startsWith('image/')) {
+                    mensaje.textContent = 'El archivo seleccionado no es una imagen.';
+                    fileInput.value = '';
+                    return;
+                }
+                if (file.size > 2 * 1024 * 1024) { // 2MB
+                    mensaje.textContent = 'La imagen no debe superar los 2MB.';
+                    fileInput.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = async function(evt) {
+                    await enviarDatos(evt.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                await enviarDatos(null);
+            }
+            async function enviarDatos(imagen) {
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                const data = {
+                    Nombre: form.Nombre.value.trim(),
+                    Tipo: form.Tipo.value,
+                    UltimoMantenimiento: form.UltimoMantenimiento.value || null,
+                    EstadoOperativo: form.EstadoOperativo.value,
+                    Imagen: imagen
+                };
+                try {
+                    const res = await fetch('https://192.168.100.8:3000/registro_maquina', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await res.json();
+                    if (res.ok) {
+                        mensaje.style.color = 'green';
+                        mensaje.textContent = result.mensaje;
+                        form.reset();
+                    } else {
+                        mensaje.style.color = '#d00';
+                        mensaje.textContent = result.mensaje || 'Error en el registro';
+                    }
+                } catch (err) {
+                    mensaje.style.color = '#d00';
+                    mensaje.textContent = 'No se pudo conectar al servidor';
+                }
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

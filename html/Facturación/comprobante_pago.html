@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Comprobante de Pago</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 700px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .formulario {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 1.5em;
+        }
+        input[type="number"] {
+            flex: 1;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            padding: 0.7em 1.5em;
+            background: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .comprobante {
+            background: #f9f9f9;
+            border: 2px solid #3498db;
+            padding: 2em;
+            border-radius: 8px;
+            margin-top: 1.5em;
+            display: none;
+            page-break-after: always;
+        }
+        .comprobante.visible {
+            display: block;
+        }
+        .comprobante-header {
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 1em;
+            margin-bottom: 1em;
+        }
+        .comprobante-header h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        .comprobante-header p {
+            margin: 0.5em 0 0 0;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        .fila {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.7em 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .fila:last-child {
+            border-bottom: none;
+        }
+        .fila.importante {
+            font-weight: bold;
+            border-bottom: 2px solid #3498db;
+            margin-top: 1em;
+            padding-top: 1em;
+        }
+        .label {
+            color: #2c3e50;
+        }
+        .valor {
+            font-weight: 500;
+            color: #34495e;
+        }
+        .comprobante-footer {
+            text-align: center;
+            margin-top: 1.5em;
+            padding-top: 1em;
+            border-top: 1px solid #ecf0f1;
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+            font-weight: bold;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+        .botones-comprobante {
+            display: flex;
+            gap: 1em;
+            margin-top: 1.5em;
+            justify-content: center;
+        }
+        .botones-comprobante button {
+            flex: 1;
+            max-width: 200px;
+        }
+        .btn-imprimir {
+            background: #16a085;
+        }
+        .btn-imprimir:hover {
+            background: #138d75;
+        }
+        .btn-volver {
+            background: #95a5a6;
+        }
+        .btn-volver:hover {
+            background: #7f8c8d;
+        }
+        @media print {
+            body {
+                background: white;
+            }
+            .contenedor {
+                box-shadow: none;
+                margin: 0;
+                padding: 0;
+            }
+            .formulario {
+                display: none;
+            }
+            .mensaje {
+                display: none;
+            }
+            .botones-comprobante {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Comprobante de Pago</h2>
+        
+        <div class="formulario">
+            <input type="number" id="idPago" placeholder="Ingrese el ID del pago" min="1" required>
+            <button onclick="buscarPago()">Buscar Comprobante</button>
+        </div>
+
+        <div class="mensaje" id="mensaje"></div>
+
+        <div class="comprobante" id="comprobante">
+            <div class="comprobante-header">
+                <h2>COMPROBANTE DE PAGO</h2>
+                <p>Gimnasio - Sistema de Gestión</p>
+            </div>
+
+            <div class="fila">
+                <span class="label">Número de Comprobante:</span>
+                <span class="valor" id="numeroPago">-</span>
+            </div>
+
+            <div class="fila">
+                <span class="label">Fecha de Pago:</span>
+                <span class="valor" id="fechaPago">-</span>
+            </div>
+
+            <div style="margin: 1.5em 0; padding: 1em; background: #ecf0f1; border-radius: 4px;">
+                <div style="font-weight: bold; margin-bottom: 0.5em; color: #2c3e50;">Datos del Socio:</div>
+                <div class="fila" style="border-bottom: none; padding: 0.3em 0;">
+                    <span class="label">Nombre:</span>
+                    <span class="valor" id="nombreSocio">-</span>
+                </div>
+                <div class="fila" style="border-bottom: none; padding: 0.3em 0;">
+                    <span class="label">Email:</span>
+                    <span class="valor" id="emailSocio">-</span>
+                </div>
+            </div>
+
+            <div style="margin: 1.5em 0; padding: 1em; background: #ecf0f1; border-radius: 4px;">
+                <div style="font-weight: bold; margin-bottom: 0.5em; color: #2c3e50;">Detalles de la Membresía:</div>
+                <div class="fila" style="border-bottom: none; padding: 0.3em 0;">
+                    <span class="label">Plan:</span>
+                    <span class="valor" id="nombrePlan">-</span>
+                </div>
+                <div class="fila" style="border-bottom: none; padding: 0.3em 0;">
+                    <span class="label">ID Membresía:</span>
+                    <span class="valor" id="idMembresia">-</span>
+                </div>
+                <div class="fila" style="border-bottom: none; padding: 0.3em 0;">
+                    <span class="label">Precio Vigente:</span>
+                    <span class="valor" id="precioPlan">-</span>
+                </div>
+            </div>
+
+            <div class="fila importante">
+                <span class="label">MONTO PAGADO:</span>
+                <span class="valor" id="montoPagado">-</span>
+            </div>
+
+            <div class="fila">
+                <span class="label">Método de Pago:</span>
+                <span class="valor" id="metodoPago">-</span>
+            </div>
+
+            <div class="fila">
+                <span class="label">Estado:</span>
+                <span class="valor" id="estado">-</span>
+            </div>
+
+            <div class="comprobante-footer">
+                <p>Comprobante generado automáticamente por el sistema</p>
+                <p>Conserve este comprobante para sus registros</p>
+            </div>
+
+            <div class="botones-comprobante">
+                <button class="btn-imprimir" onclick="imprimirComprobante()">Imprimir</button>
+                <button class="btn-volver" onclick="volverAtras()">Volver</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function buscarPago() {
+            const idPago = document.getElementById('idPago').value;
+            const mensaje = document.getElementById('mensaje');
+            const comprobante = document.getElementById('comprobante');
+
+            mensaje.className = 'mensaje';
+            comprobante.classList.remove('visible');
+
+            if (!idPago) {
+                mensaje.textContent = 'Por favor ingrese un ID de pago.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (parseInt(idPago) <= 0) {
+                mensaje.textContent = 'El ID debe ser un número positivo.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            fetch(`https://192.168.100.8:3000/pagos/${idPago}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Pago no encontrado');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    // Llenar datos del comprobante
+                    document.getElementById('numeroPago').textContent = data.id_pago;
+                    const fecha = new Date(data.fechapago);
+                    document.getElementById('fechaPago').textContent = fecha.toLocaleDateString('es-ES');
+                    
+                    document.getElementById('nombreSocio').textContent = data.nombre + ' ' + data.apellido;
+                    document.getElementById('emailSocio').textContent = data.email || 'No disponible';
+                    
+                    document.getElementById('nombrePlan').textContent = data.nombreplan;
+                    document.getElementById('idMembresia').textContent = data.id_membresia;
+                    document.getElementById('precioPlan').textContent = '$' + parseFloat(data.precio).toFixed(2);
+                    
+                    document.getElementById('montoPagado').textContent = '$' + parseFloat(data.montopagado).toFixed(2);
+                    document.getElementById('metodoPago').textContent = data.metodopago;
+                    document.getElementById('estado').textContent = data.estado;
+
+                    comprobante.classList.add('visible');
+                    mensaje.textContent = '';
+                })
+                .catch(error => {
+                    mensaje.textContent = 'Pago no encontrado.';
+                    mensaje.classList.add('error');
+                });
+        }
+
+        function imprimirComprobante() {
+            window.print();
+        }
+
+        function volverAtras() {
+            document.getElementById('idPago').value = '';
+            document.getElementById('comprobante').classList.remove('visible');
+            document.getElementById('mensaje').textContent = '';
+        }
+
+        document.getElementById('idPago').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarPago();
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

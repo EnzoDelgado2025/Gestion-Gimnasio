@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cancelar Reserva de Máquina</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 700px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .formulario {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 1.5em;
+        }
+        input[type="number"] {
+            flex: 1;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            padding: 0.7em 1.5em;
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #c0392b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            display: none;
+        }
+        table.visible {
+            display: table;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 0.7em;
+            text-align: left;
+        }
+        th {
+            background: #e74c3c;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+            font-weight: bold;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+        .confirmacion {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 1em;
+            border-radius: 4px;
+            margin-top: 1em;
+            display: none;
+        }
+        .confirmacion.visible {
+            display: block;
+        }
+        .confirmacion button {
+            margin-right: 0.5em;
+            width: auto;
+        }
+        .btn-confirmar {
+            background: #e74c3c;
+        }
+        .btn-confirmar:hover {
+            background: #c0392b;
+        }
+        .btn-cancelar {
+            background: #95a5a6;
+        }
+        .btn-cancelar:hover {
+            background: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Cancelar Reserva de Máquina</h2>
+        
+        <div class="formulario">
+            <input type="number" id="idReserva" placeholder="Ingrese el ID de la reserva" min="1" required>
+            <button onclick="buscarReserva()">Buscar</button>
+        </div>
+
+        <div class="mensaje" id="mensaje"></div>
+
+        <table id="tablaReserva">
+            <thead>
+                <tr>
+                    <th>Campo</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+        </table>
+
+        <div class="confirmacion" id="confirmacion">
+            <p><strong>¿Está seguro que desea cancelar esta reserva?</strong> Esta acción no se puede deshacer.</p>
+            <button class="btn-confirmar" onclick="confirmarCancelacion()">Confirmar Cancelación</button>
+            <button class="btn-cancelar" onclick="cancelarCancelacion()">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        let idReservaActual = null;
+
+        function buscarReserva() {
+            const idReserva = document.getElementById('idReserva').value;
+            const mensaje = document.getElementById('mensaje');
+            const tabla = document.getElementById('tablaReserva');
+            const cuerpoTabla = document.getElementById('cuerpoTabla');
+            const confirmacion = document.getElementById('confirmacion');
+
+            mensaje.className = 'mensaje';
+            tabla.classList.remove('visible');
+            confirmacion.classList.remove('visible');
+            cuerpoTabla.innerHTML = '';
+
+            if (!idReserva) {
+                mensaje.textContent = 'Por favor ingrese un ID de reserva.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (parseInt(idReserva) <= 0) {
+                mensaje.textContent = 'El ID debe ser un número positivo.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            // Obtener la reserva
+            fetch(`https://192.168.100.8:3000/reservas_maquinas`)
+                .then(res => res.json())
+                .then(data => {
+                    const reserva = data.find(r => r.id_reserva == idReserva);
+                    
+                    if (!reserva) {
+                        mensaje.textContent = 'Reserva no encontrada.';
+                        mensaje.classList.add('error');
+                        idReservaActual = null;
+                        return;
+                    }
+
+                    idReservaActual = reserva.id_reserva;
+                    const campos = [
+                        { nombre: 'ID Reserva', valor: reserva.id_reserva },
+                        { nombre: 'Cédula Socio', valor: reserva.id_socio },
+                        { nombre: 'Nombre Socio', valor: reserva.nombre },
+                        { nombre: 'Apellido Socio', valor: reserva.apellido },
+                        { nombre: 'Máquina', valor: reserva.nombremaquina },
+                        { nombre: 'Fecha Reserva', valor: reserva.fechareserva },
+                        { nombre: 'Hora Inicio', valor: reserva.horainicio },
+                        { nombre: 'Hora Fin', valor: reserva.horafin }
+                    ];
+
+                    campos.forEach(campo => {
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `<td><strong>${campo.nombre}</strong></td><td>${campo.valor}</td>`;
+                        cuerpoTabla.appendChild(fila);
+                    });
+
+                    tabla.classList.add('visible');
+                    confirmacion.classList.add('visible');
+                    mensaje.textContent = 'Reserva encontrada. ¿Desea cancelarla?';
+                    mensaje.classList.add('success');
+                })
+                .catch(error => {
+                    mensaje.textContent = 'Error al consultar las reservas.';
+                    mensaje.classList.add('error');
+                    idReservaActual = null;
+                });
+        }
+
+        function confirmarCancelacion() {
+            if (!idReservaActual) {
+                return;
+            }
+
+            const mensaje = document.getElementById('mensaje');
+            const confirmacion = document.getElementById('confirmacion');
+
+            fetch(`https://192.168.100.8:3000/cancelar_reserva/${idReservaActual}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Error al cancelar la reserva');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    mensaje.className = 'mensaje success';
+                    mensaje.textContent = data.mensaje || 'Reserva cancelada correctamente.';
+                    confirmacion.classList.remove('visible');
+                    document.getElementById('tablaReserva').classList.remove('visible');
+                    document.getElementById('idReserva').value = '';
+                    idReservaActual = null;
+                })
+                .catch(error => {
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = 'Error al cancelar la reserva.';
+                });
+        }
+
+        function cancelarCancelacion() {
+            const confirmacion = document.getElementById('confirmacion');
+            confirmacion.classList.remove('visible');
+            idReservaActual = null;
+        }
+
+        document.getElementById('idReserva').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarReserva();
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

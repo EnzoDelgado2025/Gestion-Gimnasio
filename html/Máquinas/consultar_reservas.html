@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Consultar Reservas de Máquinas</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 1100px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .controles {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 1.5em;
+            flex-wrap: wrap;
+        }
+        input[type="text"] {
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            padding: 0.7em 1.5em;
+            background: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            display: none;
+        }
+        table.visible {
+            display: table;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 0.7em;
+            text-align: left;
+        }
+        th {
+            background: #3498db;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        tr:hover {
+            background: #e8f4f8;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+            font-weight: bold;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Consultar Reservas de Máquinas</h2>
+        
+        <div class="controles">
+            <select id="tipoConsulta" onchange="cambiarTipoConsulta()" style="padding: 0.7em; border: 1px solid #ccc; border-radius: 4px; font-size: 1em;">
+                <option value="todas">Todas las Reservas</option>
+                <option value="socio">Reservas de un Socio</option>
+            </select>
+            <input type="text" id="inputConsulta" placeholder="Cédula del socio (10 dígitos)" style="display: none; max-width: 200px;" pattern="^[0-9]{10}$" maxlength="10" minlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <button onclick="cargarReservas()">Cargar</button>
+        </div>
+
+        <table id="tablaReservas">
+            <thead>
+                <tr>
+                    <th>ID Reserva</th>
+                    <th>Cédula Socio</th>
+                    <th>Nombre Socio</th>
+                    <th>Apellido Socio</th>
+                    <th>Máquina</th>
+                    <th>Fecha Reserva</th>
+                    <th>Hora Inicio</th>
+                    <th>Hora Fin</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+        </table>
+
+        <div class="mensaje" id="mensaje"></div>
+    </div>
+
+    <script>
+        function cambiarTipoConsulta() {
+            const tipoConsulta = document.getElementById('tipoConsulta').value;
+            const inputConsulta = document.getElementById('inputConsulta');
+            
+            if (tipoConsulta === 'socio') {
+                inputConsulta.style.display = 'inline-block';
+                inputConsulta.focus();
+            } else {
+                inputConsulta.style.display = 'none';
+            }
+        }
+
+        function cargarReservas() {
+            const tipoConsulta = document.getElementById('tipoConsulta').value;
+            const inputConsulta = document.getElementById('inputConsulta').value.trim();
+            const mensaje = document.getElementById('mensaje');
+            const tabla = document.getElementById('tablaReservas');
+            const cuerpoTabla = document.getElementById('cuerpoTabla');
+
+            mensaje.className = 'mensaje';
+            cuerpoTabla.innerHTML = '';
+            tabla.classList.remove('visible');
+
+            let url = 'https://192.168.100.8:3000/reservas_maquinas';
+
+            if (tipoConsulta === 'socio') {
+                if (!inputConsulta) {
+                    mensaje.textContent = 'Por favor ingrese una cédula de socio.';
+                    mensaje.classList.add('error');
+                    return;
+                }
+
+                if (!/^[0-9]{10}$/.test(inputConsulta)) {
+                    mensaje.textContent = 'La cédula debe tener exactamente 10 dígitos.';
+                    mensaje.classList.add('error');
+                    return;
+                }
+
+                url = `https://192.168.100.8:3000/reservas_socio/${inputConsulta}`;
+            }
+
+            fetch(url)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Error al consultar las reservas');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (!Array.isArray(data) || data.length === 0) {
+                        mensaje.className = 'mensaje error';
+                        mensaje.textContent = 'No se encontraron reservas.';
+                        return;
+                    }
+
+                    data.forEach(reserva => {
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `
+                            <td>${reserva.id_reserva}</td>
+                            <td>${reserva.id_socio}</td>
+                            <td>${reserva.nombre}</td>
+                            <td>${reserva.apellido}</td>
+                            <td>${reserva.nombremaquina}</td>
+                            <td>${reserva.fechareserva}</td>
+                            <td>${reserva.horainicio}</td>
+                            <td>${reserva.horafin}</td>
+                        `;
+                        cuerpoTabla.appendChild(fila);
+                    });
+
+                    tabla.classList.add('visible');
+                    mensaje.className = 'mensaje success';
+                    mensaje.textContent = `Se encontraron ${data.length} reserva(s).`;
+                })
+                .catch(error => {
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = 'Error al consultar las reservas.';
+                });
+        }
+
+        document.getElementById('inputConsulta').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                cargarReservas();
+            }
+        });
+
+        // Cargar reservas automáticamente al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarReservas();
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reservar Máquina</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 700px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .campo-grupo {
+            margin-bottom: 1.2em;
+        }
+        .campo-grupo label {
+            display: block;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input[type="text"], input[type="date"], input[type="time"], select {
+            width: 100%;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 0.8em;
+            background: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+            font-weight: bold;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 1em;
+            border-radius: 4px;
+            margin-top: 1em;
+            display: none;
+        }
+        .info.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Reservar Máquina</h2>
+        
+        <div class="campo-grupo">
+            <label for="idSocio">Cédula del Socio</label>
+            <input type="text" id="idSocio" pattern="^[0-9]{10}$" maxlength="10" minlength="10" placeholder="10 dígitos" required title="Debe tener exactamente 10 dígitos" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        </div>
+
+        <div class="campo-grupo">
+            <label for="idMaquina">Máquina</label>
+            <select id="idMaquina" required onchange="actualizarMaquina()">
+                <option value="">Seleccione una máquina...</option>
+            </select>
+        </div>
+
+        <div class="info" id="infoMaquina">
+            <strong>Información de la Máquina:</strong>
+            <p>Nombre: <span id="nombreMaquina">-</span></p>
+            <p>Tipo: <span id="tipoMaquina">-</span></p>
+            <p>Estado: <span id="estadoMaquina" style="color: #27ae60;">-</span></p>
+        </div>
+
+        <div class="campo-grupo">
+            <label for="fechaReserva">Fecha de Reserva</label>
+            <input type="date" id="fechaReserva" required>
+        </div>
+
+        <div class="campo-grupo">
+            <label for="horaInicio">Hora de Inicio</label>
+            <input type="time" id="horaInicio" required>
+        </div>
+
+        <div class="campo-grupo">
+            <label for="horaFin">Hora de Fin</label>
+            <input type="time" id="horaFin" required>
+        </div>
+
+        <button onclick="reservarMaquina()">Reservar Máquina</button>
+        
+        <div class="mensaje" id="mensaje"></div>
+    </div>
+
+    <script>
+        let maquinasDisponibles = [];
+
+        // Cargar máquinas al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarMaquinas();
+            // Establecer fecha mínima a hoy
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaReserva').min = hoy;
+        });
+
+        function cargarMaquinas() {
+            fetch('https://192.168.100.8:3000/maquinas')
+                .then(res => res.json())
+                .then(data => {
+                    maquinasDisponibles = data;
+                    const select = document.getElementById('idMaquina');
+                    data.forEach(maquina => {
+                        const option = document.createElement('option');
+                        option.value = maquina.id_maquina;
+                        option.textContent = maquina.nombre + ' (' + maquina.tipo + ')';
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar máquinas:', error);
+                    const mensaje = document.getElementById('mensaje');
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = 'Error al cargar las máquinas disponibles.';
+                });
+        }
+
+        function actualizarMaquina() {
+            const idMaquina = document.getElementById('idMaquina').value;
+            const maquina = maquinasDisponibles.find(m => m.id_maquina == idMaquina);
+            const infoMaquina = document.getElementById('infoMaquina');
+            
+            if (maquina) {
+                document.getElementById('nombreMaquina').textContent = maquina.nombre;
+                document.getElementById('tipoMaquina').textContent = maquina.tipo;
+                document.getElementById('estadoMaquina').textContent = maquina.estadooperativo;
+                document.getElementById('estadoMaquina').style.color = maquina.estadooperativo === 'Operativa' ? '#27ae60' : '#e74c3c';
+                infoMaquina.classList.add('visible');
+            } else {
+                infoMaquina.classList.remove('visible');
+            }
+        }
+
+        function reservarMaquina() {
+            const idSocio = document.getElementById('idSocio').value.trim();
+            const idMaquina = document.getElementById('idMaquina').value;
+            const fechaReserva = document.getElementById('fechaReserva').value;
+            const horaInicio = document.getElementById('horaInicio').value;
+            const horaFin = document.getElementById('horaFin').value;
+            const mensaje = document.getElementById('mensaje');
+
+            mensaje.className = 'mensaje';
+
+            // Validaciones
+            if (!idSocio || !idMaquina || !fechaReserva || !horaInicio || !horaFin) {
+                mensaje.textContent = 'Todos los campos son requeridos.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(idSocio)) {
+                mensaje.textContent = 'La cédula debe tener exactamente 10 dígitos.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (horaFin <= horaInicio) {
+                mensaje.textContent = 'La hora de fin debe ser mayor a la hora de inicio.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            fetch('https://192.168.100.8:3000/reservar_maquina', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ID_Socio: idSocio,
+                    ID_Maquina: parseInt(idMaquina),
+                    FechaReserva: fechaReserva,
+                    HoraInicio: horaInicio,
+                    HoraFin: horaFin
+                })
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        return res.json().then(error => {
+                            throw new Error(error.mensaje);
+                        });
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    mensaje.className = 'mensaje success';
+                    mensaje.textContent = 'Reserva registrada correctamente. ID: ' + data.reserva.id_reserva;
+                    document.getElementById('idSocio').value = '';
+                    document.getElementById('idMaquina').value = '';
+                    document.getElementById('fechaReserva').value = '';
+                    document.getElementById('horaInicio').value = '';
+                    document.getElementById('horaFin').value = '';
+                    document.getElementById('infoMaquina').classList.remove('visible');
+                    setTimeout(() => {
+                        mensaje.style.display = 'none';
+                    }, 3000);
+                })
+                .catch(error => {
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = error.message || 'Error al registrar la reserva.';
+                });
+        }
+
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                reservarMaquina();
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

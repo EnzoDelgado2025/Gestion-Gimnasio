@@ -3,24 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Principal</title>
+    <title>Panel Principal - GymMax</title>
+    <link rel="stylesheet" href="footer.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
         }
         .bienvenida {
-            background: #2d3e50;
+            background: linear-gradient(135deg, rgba(45, 62, 80, 0.95) 0%, rgba(52, 73, 94, 0.95) 100%), 
+                        url('../imagenes/publicidad.png') center/cover;
             color: #fff;
-            padding: 20px;
+            padding: 3em 1.5em;
             text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            position: relative;
+        }
+        .bienvenida::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+        .bienvenida h2 {
+            position: relative;
+            z-index: 2;
+            font-size: 2.2em;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.5px;
+        }
+        .bienvenida span {
+            font-weight: 700;
+            color: #00d4ff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
         }
         nav {
-            background: #34495e;
+            background: linear-gradient(90deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
             color: #fff;
             padding: 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 999;
         }
         nav ul {
             list-style: none;
@@ -33,96 +68,219 @@
             position: relative;
         }
         nav > ul > li {
-            padding: 15px 25px;
-            cursor: pointer;
+            padding: 0;
         }
-        nav ul li:hover {
-            background: #22313f;
+        nav > ul > li > a {
+            display: block;
+            padding: 18px 25px;
+            cursor: pointer;
+            color: inherit;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+        }
+        nav > ul > li:not(.salir):hover > a {
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+        }
+        nav > ul > li:not(.salir) > a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #00d4ff;
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+        nav > ul > li:not(.salir):hover > a::after {
+            transform: scaleX(1);
+            transform-origin: left;
         }
         nav ul ul {
             display: none;
             position: absolute;
             left: 0;
             top: 100%;
-            background: #34495e;
-            min-width: 220px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            min-width: 250px;
             z-index: 1000;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-top: 3px solid #00d4ff;
         }
         nav ul li:hover > ul {
             display: block;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         nav ul ul li {
-            padding: 12px 20px;
+            width: 100%;
+        }
+        nav ul ul li a {
+            display: block;
+            padding: 14px 20px;
+            color: inherit;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            font-size: 0.95em;
             white-space: nowrap;
         }
+        nav ul ul li:hover a {
+            background: rgba(0, 212, 255, 0.15);
+            color: #00d4ff;
+            border-left-color: #00d4ff;
+            padding-left: 25px;
+        }
         .salir {
-            margin-left: auto;
-            background: #e74c3c;
+            margin-left: auto !important;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
             color: #fff;
-            padding: 15px 25px;
+            padding: 0 !important;
+        }
+        .salir a {
+            display: block;
+            padding: 18px 25px;
             cursor: pointer;
             text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            font-weight: 600;
         }
-        .salir:hover {
-            background: #c0392b;
+        .salir a:hover {
+            background: linear-gradient(90deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+        .content-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2em;
+            min-height: calc(100vh - 200px);
+        }
+        .content-section img {
+            max-width: 100%;
+            max-height: 600px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            animation: fadeInScale 0.8s ease;
+        }
+        .content-section img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.3);
+        }
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        @media (max-width: 768px) {
+            .bienvenida h2 {
+                font-size: 1.6em;
+            }
+            nav {
+                position: relative;
+            }
+            nav ul ul {
+                position: static;
+                display: none;
+                border-top: none;
+                box-shadow: none;
+                background: rgba(44, 62, 80, 0.95);
+            }
+            nav > ul > li:hover > ul {
+                display: block;
+            }
         }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('usuario').textContent = 'Usuario';
+            document.getElementById('usuario').textContent = localStorage.getItem('usuario') || 'Usuario';
         });
         function salir() {
-            // Aquí puedes limpiar el localStorage o sesión si es necesario
+            localStorage.clear();
             window.location.href = 'login.html';
         }
     </script>
 </head>
 <body>
     <div class="bienvenida">
-        <h2>Bienvenido, <span id="usuario"></span>!</h2>
+        <h2>¡Bienvenido, <span id="usuario"></span>!</h2>
     </div>
     <nav>
         <ul>
-            <li><a href="inicio.html" style="color:inherit; text-decoration:none; display:block;">Inicio</a></li>
-            <li>Personas
+            <li><a href="inicio.html" style="color:inherit; text-decoration:none;">Inicio</a></li>
+            <li><a href="#" style="color:inherit; text-decoration:none;">Personas</a>
                 <ul>
-                    <li><a href="registro_socios.html" style="color:inherit; text-decoration:none; display:block;">Registro de Personas</a></li>
-                    <li>Actualización de datos</li>
-                    <li>Eliminación de socios</li>
-                    <li>Consulta de socios</li>
+                    <li><a href="Personas/registro_socios.html">Registro de Personas</a></li>
+                    <li><a href="Personas/modificar_estado_socio.html">Actualización de datos</a></li>
+                    <li><a href="Personas/eliminar_socio.html">Eliminación de socios</a></li>
+                    <li><a href="Personas/consulta_socio.html">Consulta de socios</a></li>
                 </ul>
             </li>
-            <li>Empleados
+            <li><a href="#" style="color:inherit; text-decoration:none;">Empleados</a>
                 <ul>
-                    <li>Registro de Empleados</li>
-                    <li>Actualización de datos</li>
-                    <li>Eliminación de socios</li>
-                    <li>Consulta de socios</li>
+                    <li><a href="Empleados/registro_empleado.html">Registro de Empleados</a></li>
+                    <li><a href="Empleados/modificar_empleado.html">Actualización de datos</a></li>
+                    <li><a href="Empleados/eliminar_empleado.html">Eliminación del empleado</a></li>
+                    <li><a href="Empleados/consulta_empleado.html">Consulta de empleados</a></li>
                 </ul>
             </li>
-            <li>Maquinas
+            <li><a href="#" style="color:inherit; text-decoration:none;">Máquinas</a>
                 <ul>
-                    <li>Registro de máquinas</li>
-                    <li>Actualización de máquinas</li>
-                    <li>Eliminación de máquinas</li>
-                    <li>Consulta de maquinas</li>
+                    <li><a href="Máquinas/registro_maquina.html">Registro de máquinas</a></li>
+                    <li><a href="Máquinas/modificar_estado_maquina.html">Actualización de máquinas</a></li>
+                    <li><a href="Máquinas/eliminar_maquina.html">Eliminación de máquinas</a></li>
+                    <li><a href="Máquinas/consulta_maquinas.html">Consulta de máquinas</a></li>
+                    <li><a href="Máquinas/reservar_maquina.html">Reservar máquina</a></li>
+                    <li><a href="Máquinas/consultar_reservas.html">Consultar reservas</a></li>
+                    <li><a href="Máquinas/cancelar_reserva.html">Cancelar reserva</a></li>
                 </ul>
             </li>
-            <li>Membresías
+            <li><a href="#" style="color:inherit; text-decoration:none;">Membresías</a>
                 <ul>
-                    <li>Creación de membresías</li>
-                    <li>Actualización de planes</li>
-                    <li>Eliminación de plan</li>
-                    <li>Consulta de membresias</li>
+                    <li><a href="Membresías/registro_plan_membresia.html">Crear Plan</a></li>
+                    <li><a href="Membresías/consulta_planes.html">Consultar Planes</a></li>
+                    <li><a href="Membresías/modificar_plan.html">Modificar Plan</a></li>
+                    <li><a href="Membresías/eliminar_plan.html">Eliminar Plan</a></li>
+                    <li><a href="Membresías/registro_membresia.html">Registrar Membresía</a></li>
+                    <li><a href="Membresías/consulta_membresias.html">Consultar Membresías</a></li>
+                    <li><a href="Membresías/modificar_membresia.html">Modificar Membresía</a></li>
+                    <li><a href="Membresías/eliminar_membresia.html">Eliminar Membresía</a></li>
                 </ul>
             </li>
-            <li>Facturación
+            <li><a href="#" style="color:inherit; text-decoration:none;">Facturación</a>
                 <ul>
-                    <li>Pagos</li>
+                    <li><a href="Facturación/registrar_pago.html">Registrar Pago</a></li>
+                    <li><a href="Facturación/consultar_pagos.html">Consultar Pagos</a></li>
+                    <li><a href="Facturación/comprobante_pago.html">Comprobante de Pago</a></li>
                 </ul>
             </li>
-            <li class="salir" onclick="salir()">Salir</li>
+            <li class="salir"><a onclick="salir()">Salir</a></li>
         </ul>
     </nav>
+    <div class="content-section">
+        <img src="../imagenes/publicidad3.png" alt="Publicidad GymMax">
+    </div>
+    <script src="footer.js"></script>
 </body>
 </html>

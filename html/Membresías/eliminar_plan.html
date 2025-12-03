@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Eliminar Plan de Membresía</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 700px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .formulario {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 1.5em;
+        }
+        input[type="number"] {
+            flex: 1;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            padding: 0.7em 1.5em;
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #c0392b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            display: none;
+        }
+        table.visible {
+            display: table;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 0.7em;
+            text-align: left;
+        }
+        th {
+            background: #e74c3c;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+            font-weight: bold;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+        .confirmacion {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 1em;
+            border-radius: 4px;
+            margin-top: 1em;
+            display: none;
+        }
+        .confirmacion.visible {
+            display: block;
+        }
+        .confirmacion button {
+            margin-right: 0.5em;
+            width: auto;
+        }
+        .btn-confirmar {
+            background: #e74c3c;
+        }
+        .btn-confirmar:hover {
+            background: #c0392b;
+        }
+        .btn-cancelar {
+            background: #95a5a6;
+        }
+        .btn-cancelar:hover {
+            background: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Eliminar Plan de Membresía</h2>
+        
+        <div class="formulario">
+            <input type="number" id="idPlan" placeholder="Ingrese el ID del plan" min="1" required>
+            <button onclick="buscarPlan()">Buscar</button>
+        </div>
+
+        <div class="mensaje" id="mensaje"></div>
+
+        <table id="tablaPlan">
+            <thead>
+                <tr>
+                    <th>Campo</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+        </table>
+
+        <div class="confirmacion" id="confirmacion">
+            <p><strong>¿Está seguro que desea eliminar este plan?</strong> Esta acción no se puede deshacer.</p>
+            <button class="btn-confirmar" onclick="confirmarEliminacion()">Confirmar Eliminación</button>
+            <button class="btn-cancelar" onclick="cancelarEliminacion()">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        let idPlanActual = null;
+
+        function buscarPlan() {
+            const idPlan = document.getElementById('idPlan').value;
+            const mensaje = document.getElementById('mensaje');
+            const tabla = document.getElementById('tablaPlan');
+            const cuerpoTabla = document.getElementById('cuerpoTabla');
+            const confirmacion = document.getElementById('confirmacion');
+
+            mensaje.className = 'mensaje';
+            tabla.classList.remove('visible');
+            confirmacion.classList.remove('visible');
+            cuerpoTabla.innerHTML = '';
+
+            if (!idPlan) {
+                mensaje.textContent = 'Por favor ingrese un ID de plan.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (parseInt(idPlan) <= 0) {
+                mensaje.textContent = 'El ID debe ser un número positivo.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            fetch(`https://192.168.100.8:3000/planes_membresia/${idPlan}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Plan no encontrado');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    idPlanActual = data.id_plan;
+                    const campos = [
+                        { nombre: 'ID Plan', valor: data.id_plan },
+                        { nombre: 'Nombre del Plan', valor: data.nombreplan },
+                        { nombre: 'Duración (días)', valor: data.duraciondias },
+                        { nombre: 'Precio ($)', valor: '$' + parseFloat(data.precio).toFixed(2) }
+                    ];
+
+                    campos.forEach(campo => {
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `<td><strong>${campo.nombre}</strong></td><td>${campo.valor}</td>`;
+                        cuerpoTabla.appendChild(fila);
+                    });
+
+                    tabla.classList.add('visible');
+                    confirmacion.classList.add('visible');
+                    mensaje.textContent = 'Plan encontrado. ¿Desea eliminarlo?';
+                    mensaje.classList.add('success');
+                })
+                .catch(error => {
+                    mensaje.textContent = 'Plan no encontrado.';
+                    mensaje.classList.add('error');
+                    idPlanActual = null;
+                });
+        }
+
+        function confirmarEliminacion() {
+            if (!idPlanActual) {
+                return;
+            }
+
+            const mensaje = document.getElementById('mensaje');
+            const confirmacion = document.getElementById('confirmacion');
+
+            fetch(`https://192.168.100.8:3000/eliminar_plan_membresia/${idPlanActual}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Error al eliminar el plan');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    mensaje.className = 'mensaje success';
+                    mensaje.textContent = data.mensaje || 'Plan eliminado correctamente.';
+                    confirmacion.classList.remove('visible');
+                    document.getElementById('tablaPlan').classList.remove('visible');
+                    document.getElementById('idPlan').value = '';
+                    idPlanActual = null;
+                })
+                .catch(error => {
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = error.message.includes('pagos') ? 'No se puede eliminar: el plan tiene membresías asociadas.' : 'Error al eliminar el plan.';
+                });
+        }
+
+        function cancelarEliminacion() {
+            const confirmacion = document.getElementById('confirmacion');
+            confirmacion.classList.remove('visible');
+            idPlanActual = null;
+        }
+
+        document.getElementById('idPlan').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarPlan();
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

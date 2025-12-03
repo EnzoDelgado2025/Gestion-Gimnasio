@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Plan de Membresía</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 600px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .campo-grupo {
+            margin-bottom: 1.2em;
+        }
+        .campo-grupo label {
+            display: block;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 0.8em;
+            background: #27ae60;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #229954;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+            font-weight: bold;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Registrar Plan de Membresía</h2>
+        
+        <div class="campo-grupo">
+            <label for="nombrePlan">Nombre del Plan</label>
+            <input type="text" id="nombrePlan" maxlength="50" required title="Máximo 50 caracteres">
+        </div>
+
+        <div class="campo-grupo">
+            <label for="duracionDias">Duración (días)</label>
+            <input type="number" id="duracionDias" min="1" step="1" required title="Debe ser un número positivo">
+        </div>
+
+        <div class="campo-grupo">
+            <label for="precio">Precio ($)</label>
+            <input type="number" id="precio" min="0" step="0.01" required title="Debe ser un número no negativo">
+        </div>
+
+        <button onclick="registrarPlan()">Registrar Plan</button>
+        
+        <div class="mensaje" id="mensaje"></div>
+    </div>
+
+    <script>
+        function registrarPlan() {
+            const nombrePlan = document.getElementById('nombrePlan').value.trim();
+            const duracionDias = document.getElementById('duracionDias').value;
+            const precio = document.getElementById('precio').value;
+            const mensaje = document.getElementById('mensaje');
+
+            mensaje.className = 'mensaje';
+
+            // Validaciones
+            if (!nombrePlan || !duracionDias || !precio) {
+                mensaje.textContent = 'Todos los campos son requeridos.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (parseInt(duracionDias) <= 0) {
+                mensaje.textContent = 'La duración debe ser mayor a 0 días.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (parseFloat(precio) < 0) {
+                mensaje.textContent = 'El precio no puede ser negativo.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            fetch('https://192.168.100.8:3000/registro_plan_membresia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    NombrePlan: nombrePlan,
+                    DuracionDias: parseInt(duracionDias),
+                    Precio: parseFloat(precio)
+                })
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Error al registrar el plan');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    mensaje.className = 'mensaje success';
+                    mensaje.textContent = 'Plan registrado correctamente. ID: ' + data.plan.id_plan;
+                    document.getElementById('nombrePlan').value = '';
+                    document.getElementById('duracionDias').value = '';
+                    document.getElementById('precio').value = '';
+                    setTimeout(() => {
+                        mensaje.style.display = 'none';
+                    }, 3000);
+                })
+                .catch(error => {
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = 'Error al registrar el plan.';
+                });
+        }
+
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                registrarPlan();
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

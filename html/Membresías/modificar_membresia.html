@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Modificar Membresía</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 700px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .formulario {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 1.5em;
+        }
+        input[type="number"] {
+            flex: 1;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            padding: 0.7em 1.5em;
+            background: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .campo-grupo {
+            margin-bottom: 1.2em;
+        }
+        .campo-grupo label {
+            display: block;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input[type="text"], input[type="date"], select {
+            width: 100%;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            display: none;
+        }
+        table.visible {
+            display: table;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 0.7em;
+            text-align: left;
+        }
+        th {
+            background: #3498db;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+            font-weight: bold;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+        .seccion {
+            margin-top: 2em;
+        }
+        .seccion h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 0.5em;
+        }
+        .btn-actualizar {
+            background: #27ae60;
+        }
+        .btn-actualizar:hover {
+            background: #229954;
+        }
+        .info {
+            background: #ecf0f1;
+            padding: 1em;
+            border-radius: 4px;
+            margin-top: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Modificar Membresía</h2>
+        
+        <div class="seccion">
+            <h3>Buscar Membresía</h3>
+            <div class="formulario">
+                <input type="number" id="idMembresia" placeholder="Ingrese el ID de la membresía" min="1" required>
+                <button onclick="buscarMembresia()">Buscar</button>
+            </div>
+        </div>
+
+        <div class="mensaje" id="mensaje"></div>
+
+        <table id="tablaMembresia">
+            <thead>
+                <tr>
+                    <th>Campo</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+        </table>
+
+        <div class="seccion" id="seccionModificar" style="display: none;">
+            <h3>Actualizar Datos</h3>
+            
+            <div class="campo-grupo">
+                <label for="idSocio">Cédula del Socio</label>
+                <input type="text" id="idSocio" pattern="^[0-9]{10}$" maxlength="10" minlength="10" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            </div>
+
+            <div class="campo-grupo">
+                <label for="idPlan">Plan de Membresía</label>
+                <select id="idPlan" required onchange="actualizarFechas()">
+                    <option value="">Seleccione un plan...</option>
+                </select>
+            </div>
+
+            <div class="info" id="infoPlan" style="display: none;">
+                <strong>Información del Plan:</strong>
+                <p>Duración: <span id="duracionPlan">-</span> días | Precio: $<span id="precioPlan">-</span></p>
+            </div>
+
+            <div class="campo-grupo">
+                <label for="fechaInicio">Fecha de Inicio</label>
+                <input type="date" id="fechaInicio" required onchange="actualizarFechas()">
+            </div>
+
+            <div class="campo-grupo">
+                <label for="fechaFin">Fecha de Fin</label>
+                <input type="date" id="fechaFin" required readonly>
+            </div>
+
+            <button class="btn-actualizar" onclick="modificarMembresia()">Actualizar Membresía</button>
+        </div>
+    </div>
+
+    <script>
+        let idMembresiaActual = null;
+        let planesMembresia = [];
+
+        // Cargar planes al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarPlanes();
+        });
+
+        function cargarPlanes() {
+            fetch('https://192.168.100.8:3000/planes_membresia')
+                .then(res => res.json())
+                .then(data => {
+                    planesMembresia = data;
+                    const select = document.getElementById('idPlan');
+                    data.forEach(plan => {
+                        const option = document.createElement('option');
+                        option.value = plan.id_plan;
+                        option.textContent = plan.nombreplan + ' - $' + parseFloat(plan.precio).toFixed(2);
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error al cargar planes:', error));
+        }
+
+        function buscarMembresia() {
+            const idMembresia = document.getElementById('idMembresia').value;
+            const mensaje = document.getElementById('mensaje');
+            const tabla = document.getElementById('tablaMembresia');
+            const cuerpoTabla = document.getElementById('cuerpoTabla');
+            const seccionModificar = document.getElementById('seccionModificar');
+
+            mensaje.className = 'mensaje';
+            tabla.classList.remove('visible');
+            seccionModificar.style.display = 'none';
+            cuerpoTabla.innerHTML = '';
+
+            if (!idMembresia) {
+                mensaje.textContent = 'Por favor ingrese un ID de membresía.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (parseInt(idMembresia) <= 0) {
+                mensaje.textContent = 'El ID debe ser un número positivo.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            fetch(`https://192.168.100.8:3000/membresias/${idMembresia}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Membresía no encontrada');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    idMembresiaActual = data.id_membresia;
+                    const campos = [
+                        { nombre: 'ID Membresía', valor: data.id_membresia },
+                        { nombre: 'Cédula Socio', valor: data.id_socio },
+                        { nombre: 'Nombre Socio', valor: data.nombre },
+                        { nombre: 'Apellido Socio', valor: data.apellido },
+                        { nombre: 'Plan', valor: data.nombreplan },
+                        { nombre: 'Precio', valor: '$' + parseFloat(data.precio).toFixed(2) },
+                        { nombre: 'Fecha Inicio', valor: data.fechainicio },
+                        { nombre: 'Fecha Fin', valor: data.fechafin }
+                    ];
+
+                    campos.forEach(campo => {
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `<td><strong>${campo.nombre}</strong></td><td>${campo.valor}</td>`;
+                        cuerpoTabla.appendChild(fila);
+                    });
+
+                    // Llenar los campos de modificación
+                    document.getElementById('idSocio').value = data.id_socio;
+                    document.getElementById('idPlan').value = data.id_plan;
+                    document.getElementById('fechaInicio').value = data.fechainicio;
+                    document.getElementById('fechaFin').value = data.fechafin;
+                    actualizarFechas();
+
+                    tabla.classList.add('visible');
+                    seccionModificar.style.display = 'block';
+                    mensaje.textContent = 'Membresía encontrada. Puede modificar sus datos.';
+                    mensaje.classList.add('success');
+                })
+                .catch(error => {
+                    mensaje.textContent = 'Membresía no encontrada.';
+                    mensaje.classList.add('error');
+                    idMembresiaActual = null;
+                });
+        }
+
+        function actualizarFechas() {
+            const idPlan = document.getElementById('idPlan').value;
+            const plan = planesMembresia.find(p => p.id_plan == idPlan);
+            
+            if (plan) {
+                document.getElementById('duracionPlan').textContent = plan.duraciondias;
+                document.getElementById('precioPlan').textContent = parseFloat(plan.precio).toFixed(2);
+                document.getElementById('infoPlan').style.display = 'block';
+
+                const fechaInicio = new Date(document.getElementById('fechaInicio').value);
+                const fechaFin = new Date(fechaInicio);
+                fechaFin.setDate(fechaFin.getDate() + plan.duraciondias);
+                document.getElementById('fechaFin').value = fechaFin.toISOString().split('T')[0];
+            }
+        }
+
+        function modificarMembresia() {
+            const mensaje = document.getElementById('mensaje');
+            
+            if (!idMembresiaActual) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'Por favor busque primero una membresía.';
+                return;
+            }
+
+            const idSocio = document.getElementById('idSocio').value.trim();
+            const idPlan = document.getElementById('idPlan').value;
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+
+            // Validaciones
+            if (!idSocio || !idPlan || !fechaInicio || !fechaFin) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'Todos los campos son requeridos.';
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(idSocio)) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'La cédula debe tener exactamente 10 dígitos.';
+                return;
+            }
+
+            fetch(`https://192.168.100.8:3000/modificar_membresia/${idMembresiaActual}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ID_Socio: idSocio,
+                    ID_Plan: parseInt(idPlan),
+                    FechaInicio: fechaInicio,
+                    FechaFin: fechaFin
+                })
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Error al modificar la membresía');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    mensaje.className = 'mensaje success';
+                    mensaje.textContent = 'Membresía actualizada correctamente.';
+                    setTimeout(() => {
+                        buscarMembresia();
+                    }, 1500);
+                })
+                .catch(error => {
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = 'Error al modificar la membresía.';
+                });
+        }
+
+        document.getElementById('idMembresia').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarMembresia();
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

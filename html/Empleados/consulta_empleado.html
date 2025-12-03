@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Consulta de Empleado</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 800px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .busqueda {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 2em;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            padding: 0.7em 1.5em;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            display: none;
+        }
+        table.visible {
+            display: table;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 0.7em;
+            text-align: left;
+        }
+        th {
+            background: #007bff;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .mensaje { margin-top: 1em; color: #d00; font-weight: bold; }
+        .mensaje.success { color: #00aa00; }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Consulta de Empleado</h2>
+        <div class="busqueda">
+            <input type="text" id="idEmpleado" placeholder="Ingrese el ID del empleado (cédula)" pattern="^[0-9]{10}$" maxlength="10" minlength="10" required title="Debe tener exactamente 10 dígitos numéricos" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <button onclick="buscarEmpleado()">Buscar</button>
+        </div>
+        <div class="mensaje" id="mensaje"></div>
+        <table id="tablaEmpleado">
+            <thead>
+                <tr>
+                    <th>Campo</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function buscarEmpleado() {
+            const idEmpleado = document.getElementById('idEmpleado').value.trim();
+            const mensaje = document.getElementById('mensaje');
+            const tabla = document.getElementById('tablaEmpleado');
+            const cuerpoTabla = document.getElementById('cuerpoTabla');
+
+            mensaje.textContent = '';
+            tabla.classList.remove('visible');
+            cuerpoTabla.innerHTML = '';
+
+            if (!idEmpleado) {
+                mensaje.textContent = 'Por favor ingrese un ID de empleado.';
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(idEmpleado)) {
+                mensaje.textContent = 'El ID debe tener exactamente 10 dígitos numéricos.';
+                return;
+            }
+
+            fetch(`https://192.168.100.8:3000/empleados/${idEmpleado}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Empleado no encontrado');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    const campos = [
+                        { nombre: 'ID Persona', valor: data.id_persona },
+                        { nombre: 'Nombre', valor: data.nombre },
+                        { nombre: 'Apellido', valor: data.apellido },
+                        { nombre: 'Fecha de Nacimiento', valor: data.fechanacimiento },
+                        { nombre: 'Teléfono', valor: data.telefono },
+                        { nombre: 'Email', valor: data.email },
+                        { nombre: 'Cargo', valor: data.cargo },
+                        { nombre: 'Salario', valor: data.salario },
+                        { nombre: 'Fecha de Contratación', valor: data.fechacontratacion }
+                    ];
+
+                    campos.forEach(campo => {
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `<td><strong>${campo.nombre}</strong></td><td>${campo.valor || 'N/A'}</td>`;
+                        cuerpoTabla.appendChild(fila);
+                    });
+
+                    tabla.classList.add('visible');
+                    mensaje.textContent = 'Empleado encontrado correctamente.';
+                    mensaje.classList.add('success');
+                })
+                .catch(error => {
+                    mensaje.textContent = error.message === 'Empleado no encontrado' ? 'Empleado no encontrado.' : 'Error al consultar el empleado.';
+                    mensaje.classList.remove('success');
+                });
+        }
+
+        document.getElementById('idEmpleado').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarEmpleado();
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

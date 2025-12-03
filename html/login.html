@@ -3,7 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <title>Login Socio</title>
+    <link rel="stylesheet" href="footer.css">
     <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .header {
+            background: linear-gradient(135deg, rgba(0, 123, 255, 0.9) 0%, rgba(0, 198, 255, 0.9) 100%), 
+                        url('../imagenes/publicidad.png') center/cover;
+            color: #fff;
+            padding: 3em 1em;
+            text-align: center;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p {
+            margin: 0.5em 0 0 0;
+            font-size: 1.1em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
         body { font-family: Arial, sans-serif; background: #f4f4f4; }
         .login-container {
             background: #fff;
@@ -34,6 +59,10 @@
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>GymMax</h1>
+        <p>Sistema de Gestión de Gimnasio</p>
+    </div>
     <div class="login-container">
         <h2>Login Socio</h2>
         <form id="loginForm">
@@ -46,12 +75,44 @@
         <div class="mensaje" id="mensaje"></div>
     </div>
     <script>
+        // Permitir solo números en el campo ID_Persona con máximo 10 caracteres
+        document.getElementById('ID_Persona').addEventListener('keypress', function(e) {
+            const char = String.fromCharCode(e.which);
+            // Bloquear si no es número o si ya tiene 10 caracteres
+            if (!/[0-9]/.test(char) || this.value.length >= 10) {
+                e.preventDefault();
+            }
+        });
+
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const ID_Persona = document.getElementById('ID_Persona').value;
+            const ID_Persona = document.getElementById('ID_Persona').value.trim();
             const password = document.getElementById('password').value;
             const mensaje = document.getElementById('mensaje');
-            mensaje.textContent = '';
+            
+            // Validar campos vacíos
+            if (!ID_Persona) {
+                mensaje.style.color = '#d00';
+                mensaje.textContent = 'Por favor ingrese el ID Persona';
+                return;
+            }
+            
+            if (!password) {
+                mensaje.style.color = '#d00';
+                mensaje.textContent = 'Por favor ingrese la contraseña';
+                return;
+            }
+            
+            // Validar que ID_Persona sea numérico
+            if (isNaN(ID_Persona) || ID_Persona <= 0) {
+                mensaje.style.color = '#d00';
+                mensaje.textContent = 'El ID Persona debe ser un número válido';
+                return;
+            }
+            
+            mensaje.textContent = 'Validando credenciales...';
+            mensaje.style.color = '#0066cc';
+            
             try {
                 const res = await fetch('https://192.168.100.8:3000/login_socio', {
                     method: 'POST',
@@ -63,15 +124,19 @@
                 if (res.ok) {
                     // Guardar usuario logueado en localStorage
                     localStorage.setItem('usuario_logueado', data.persona.Nombre);
+                    mensaje.style.color = '#27ae60';
+                    mensaje.textContent = 'Login exitoso. Redirigiendo...';
                     // Redirigir según tipo
-                    if (data.tipo === 'socio') {
-                        window.location.href = 'panel_secundario.html';
-                    } else if (data.tipo === 'empleado') {
-                        window.location.href = 'panel_principal.html';
-                    } else {
-                        mensaje.style.color = '#d00';
-                        mensaje.textContent = 'Rol no permitido';
-                    }
+                    setTimeout(() => {
+                        if (data.tipo === 'socio') {
+                            window.location.href = 'panel_secundario.html';
+                        } else if (data.tipo === 'empleado') {
+                            window.location.href = 'panel_principal.html';
+                        } else {
+                            mensaje.style.color = '#d00';
+                            mensaje.textContent = 'Rol no permitido';
+                        }
+                    }, 500);
                 } else {
                     mensaje.style.color = '#d00';
                     mensaje.textContent = data.mensaje || 'Error en el login';
@@ -79,10 +144,25 @@
             } catch (err) {
                 mensaje.style.color = '#d00';
                 mensaje.textContent = 'No se pudo conectar al servidor';
+                console.error('Error de conexión:', err);
             }
-            // Limpiar los campos del formulario
-            document.getElementById('loginForm').reset();
+            // Limpiar el campo de contraseña (no el ID_Persona para facilitar reintentos)
+            document.getElementById('password').value = '';
+        });
+
+        // Permitir login con Enter en cualquier campo
+        document.getElementById('ID_Persona').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
         });
     </script>
+    <script src="footer.js"></script>
 </body>
 </html>

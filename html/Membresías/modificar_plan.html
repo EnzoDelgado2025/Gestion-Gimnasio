@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Modificar Plan de Membresía</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 700px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .formulario {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 1.5em;
+        }
+        input[type="text"], input[type="number"] {
+            flex: 1;
+            min-width: 150px;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            padding: 0.7em 1.5em;
+            background: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .campo-grupo {
+            margin-bottom: 1.2em;
+        }
+        .campo-grupo label {
+            display: block;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .campo-grupo input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            display: none;
+        }
+        table.visible {
+            display: table;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 0.7em;
+            text-align: left;
+        }
+        th {
+            background: #3498db;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+            font-weight: bold;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+        .seccion {
+            margin-top: 2em;
+        }
+        .seccion h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 0.5em;
+        }
+        .btn-actualizar {
+            background: #27ae60;
+        }
+        .btn-actualizar:hover {
+            background: #229954;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Modificar Plan de Membresía</h2>
+        
+        <div class="seccion">
+            <h3>Buscar Plan</h3>
+            <div class="formulario">
+                <input type="number" id="idPlan" placeholder="Ingrese el ID del plan" min="1" required>
+                <button onclick="buscarPlan()">Buscar</button>
+            </div>
+        </div>
+
+        <div class="mensaje" id="mensaje"></div>
+
+        <table id="tablaPlan">
+            <thead>
+                <tr>
+                    <th>Campo</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+        </table>
+
+        <div class="seccion" id="seccionModificar" style="display: none;">
+            <h3>Actualizar Datos</h3>
+            
+            <div class="campo-grupo">
+                <label for="nombrePlan">Nombre del Plan</label>
+                <input type="text" id="nombrePlan" maxlength="50" required>
+            </div>
+
+            <div class="campo-grupo">
+                <label for="duracionDias">Duración (días)</label>
+                <input type="number" id="duracionDias" min="1" step="1" required>
+            </div>
+
+            <div class="campo-grupo">
+                <label for="precio">Precio ($)</label>
+                <input type="number" id="precio" min="0" step="0.01" required>
+            </div>
+
+            <button class="btn-actualizar" onclick="modificarPlan()">Actualizar Plan</button>
+        </div>
+    </div>
+
+    <script>
+        let idPlanActual = null;
+
+        function buscarPlan() {
+            const idPlan = document.getElementById('idPlan').value;
+            const mensaje = document.getElementById('mensaje');
+            const tabla = document.getElementById('tablaPlan');
+            const cuerpoTabla = document.getElementById('cuerpoTabla');
+            const seccionModificar = document.getElementById('seccionModificar');
+
+            mensaje.className = 'mensaje';
+            tabla.classList.remove('visible');
+            seccionModificar.style.display = 'none';
+            cuerpoTabla.innerHTML = '';
+
+            if (!idPlan) {
+                mensaje.textContent = 'Por favor ingrese un ID de plan.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (parseInt(idPlan) <= 0) {
+                mensaje.textContent = 'El ID debe ser un número positivo.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            fetch(`https://192.168.100.8:3000/planes_membresia/${idPlan}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Plan no encontrado');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    idPlanActual = data.id_plan;
+                    const campos = [
+                        { nombre: 'ID Plan', valor: data.id_plan },
+                        { nombre: 'Nombre del Plan', valor: data.nombreplan },
+                        { nombre: 'Duración (días)', valor: data.duraciondias },
+                        { nombre: 'Precio ($)', valor: '$' + parseFloat(data.precio).toFixed(2) }
+                    ];
+
+                    campos.forEach(campo => {
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `<td><strong>${campo.nombre}</strong></td><td>${campo.valor}</td>`;
+                        cuerpoTabla.appendChild(fila);
+                    });
+
+                    // Llenar los campos de modificación
+                    document.getElementById('nombrePlan').value = data.nombreplan;
+                    document.getElementById('duracionDias').value = data.duraciondias;
+                    document.getElementById('precio').value = data.precio;
+
+                    tabla.classList.add('visible');
+                    seccionModificar.style.display = 'block';
+                    mensaje.textContent = 'Plan encontrado. Puede modificar sus datos.';
+                    mensaje.classList.add('success');
+                })
+                .catch(error => {
+                    mensaje.textContent = 'Plan no encontrado.';
+                    mensaje.classList.add('error');
+                    idPlanActual = null;
+                });
+        }
+
+        function modificarPlan() {
+            const mensaje = document.getElementById('mensaje');
+            
+            if (!idPlanActual) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'Por favor busque primero un plan.';
+                return;
+            }
+
+            const nombrePlan = document.getElementById('nombrePlan').value.trim();
+            const duracionDias = document.getElementById('duracionDias').value;
+            const precio = document.getElementById('precio').value;
+
+            // Validaciones
+            if (!nombrePlan || !duracionDias || !precio) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'Todos los campos son requeridos.';
+                return;
+            }
+
+            if (parseInt(duracionDias) <= 0) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'La duración debe ser mayor a 0 días.';
+                return;
+            }
+
+            if (parseFloat(precio) < 0) {
+                mensaje.className = 'mensaje error';
+                mensaje.textContent = 'El precio no puede ser negativo.';
+                return;
+            }
+
+            fetch(`https://192.168.100.8:3000/modificar_plan_membresia/${idPlanActual}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    NombrePlan: nombrePlan,
+                    DuracionDias: parseInt(duracionDias),
+                    Precio: parseFloat(precio)
+                })
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Error al modificar el plan');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    mensaje.className = 'mensaje success';
+                    mensaje.textContent = 'Plan actualizado correctamente.';
+                    setTimeout(() => {
+                        buscarPlan();
+                    }, 1500);
+                })
+                .catch(error => {
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = 'Error al modificar el plan.';
+                });
+        }
+
+        document.getElementById('idPlan').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarPlan();
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>

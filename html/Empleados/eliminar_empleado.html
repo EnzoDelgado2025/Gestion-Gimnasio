@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Eliminar Empleado</title>
+    <link rel="stylesheet" href="../footer.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .contenedor {
+            background: #fff;
+            padding: 2em;
+            max-width: 800px;
+            margin: 3em auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .formulario {
+            display: flex;
+            gap: 1em;
+            margin-bottom: 2em;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 0.7em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            padding: 0.7em 1.5em;
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #c0392b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            display: none;
+        }
+        table.visible {
+            display: table;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 0.7em;
+            text-align: left;
+        }
+        th {
+            background: #e74c3c;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .mensaje { 
+            margin-top: 1em; 
+            color: #d00; 
+            font-weight: bold; 
+            padding: 1em;
+            border-radius: 4px;
+            display: none;
+        }
+        .mensaje.success { 
+            color: #fff;
+            background: #27ae60;
+            display: block;
+        }
+        .mensaje.error { 
+            color: #fff;
+            background: #e74c3c;
+            display: block;
+        }
+        .confirmacion {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 1em;
+            border-radius: 4px;
+            margin-top: 1em;
+            display: none;
+        }
+        .confirmacion.visible {
+            display: block;
+        }
+        .confirmacion button {
+            margin-right: 0.5em;
+        }
+        .btn-confirmar {
+            background: #e74c3c;
+        }
+        .btn-confirmar:hover {
+            background: #c0392b;
+        }
+        .btn-cancelar {
+            background: #95a5a6;
+        }
+        .btn-cancelar:hover {
+            background: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Eliminar Empleado</h2>
+        <div class="formulario">
+            <input type="text" id="idEmpleado" placeholder="Ingrese el ID del empleado a eliminar (cédula)" pattern="^[0-9]{10}$" maxlength="10" minlength="10" required title="Debe tener exactamente 10 dígitos numéricos" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <button onclick="buscarEmpleado()">Buscar</button>
+        </div>
+        <div class="mensaje" id="mensaje"></div>
+        <table id="tablaEmpleado">
+            <thead>
+                <tr>
+                    <th>Campo</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+        </table>
+        <div class="confirmacion" id="confirmacion">
+            <p><strong>¿Está seguro que desea eliminar este empleado?</strong> Esta acción no se puede deshacer.</p>
+            <button class="btn-confirmar" onclick="confirmarEliminacion()">Confirmar Eliminación</button>
+            <button class="btn-cancelar" onclick="cancelarEliminacion()">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        let idEmpleadoActual = null;
+
+        function buscarEmpleado() {
+            const idEmpleado = document.getElementById('idEmpleado').value.trim();
+            const mensaje = document.getElementById('mensaje');
+            const tabla = document.getElementById('tablaEmpleado');
+            const cuerpoTabla = document.getElementById('cuerpoTabla');
+            const confirmacion = document.getElementById('confirmacion');
+
+            mensaje.className = 'mensaje';
+            tabla.classList.remove('visible');
+            confirmacion.classList.remove('visible');
+            cuerpoTabla.innerHTML = '';
+
+            if (!idEmpleado) {
+                mensaje.textContent = 'Por favor ingrese un ID de empleado.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(idEmpleado)) {
+                mensaje.textContent = 'El ID debe tener exactamente 10 dígitos numéricos.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            fetch(`https://192.168.100.8:3000/empleados/${idEmpleado}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Empleado no encontrado');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    idEmpleadoActual = data.id_persona;
+                    const campos = [
+                        { nombre: 'ID Persona', valor: data.id_persona },
+                        { nombre: 'Nombre', valor: data.nombre },
+                        { nombre: 'Apellido', valor: data.apellido },
+                        { nombre: 'Fecha de Nacimiento', valor: data.fechanacimiento },
+                        { nombre: 'Teléfono', valor: data.telefono },
+                        { nombre: 'Email', valor: data.email },
+                        { nombre: 'Cargo', valor: data.cargo },
+                        { nombre: 'Salario', valor: data.salario },
+                        { nombre: 'Fecha de Contratación', valor: data.fechacontratacion }
+                    ];
+
+                    campos.forEach(campo => {
+                        const fila = document.createElement('tr');
+                        fila.innerHTML = `<td><strong>${campo.nombre}</strong></td><td>${campo.valor || 'N/A'}</td>`;
+                        cuerpoTabla.appendChild(fila);
+                    });
+
+                    tabla.classList.add('visible');
+                    confirmacion.classList.add('visible');
+                    mensaje.textContent = 'Empleado encontrado. ¿Desea eliminarlo?';
+                    mensaje.classList.add('success');
+                })
+                .catch(error => {
+                    mensaje.textContent = error.message === 'Empleado no encontrado' ? 'Empleado no encontrado.' : 'Error al consultar el empleado.';
+                    mensaje.classList.add('error');
+                    idEmpleadoActual = null;
+                });
+        }
+
+        function confirmarEliminacion() {
+            if (!idEmpleadoActual) {
+                return;
+            }
+
+            const mensaje = document.getElementById('mensaje');
+            const confirmacion = document.getElementById('confirmacion');
+
+            fetch(`https://192.168.100.8:3000/eliminar_empleado/${idEmpleadoActual}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Error al eliminar el empleado');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    mensaje.className = 'mensaje success';
+                    mensaje.textContent = data.mensaje || 'Empleado eliminado correctamente.';
+                    confirmacion.classList.remove('visible');
+                    document.getElementById('tablaEmpleado').classList.remove('visible');
+                    document.getElementById('idEmpleado').value = '';
+                    idEmpleadoActual = null;
+                })
+                .catch(error => {
+                    mensaje.className = 'mensaje error';
+                    mensaje.textContent = 'Error al eliminar el empleado.';
+                });
+        }
+
+        function cancelarEliminacion() {
+            const confirmacion = document.getElementById('confirmacion');
+            confirmacion.classList.remove('visible');
+            idEmpleadoActual = null;
+        }
+
+        document.getElementById('idEmpleado').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarEmpleado();
+            }
+        });
+    </script>
+    <script src="../footer.js"></script>
+</body>
+</html>
